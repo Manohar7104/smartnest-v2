@@ -1,0 +1,1 @@
+C:/Users/kurak/Desktop/smartnest-v2/AGENTS.md
