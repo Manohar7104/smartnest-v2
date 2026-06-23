@@ -80,6 +80,29 @@
           </div>
         </dl>
 
+        {% liquid
+          assign can_cancel_realtime = false
+
+          unless order.cancelled
+            if order.fulfillment_status_label == 'Unfulfilled'
+              assign can_cancel_realtime = true
+            endif
+          endunless
+        %}
+
+        <div class="customer-order__realtime-cancel" data-order-realtime-cancel data-order-id="{{ order.id }}">
+          {% if can_cancel_realtime %}
+            <button type="button" class="customer-order__button customer-order__button--cancel" data-order-cancel-button>
+              <span data-order-cancel-label>Cancel order now</span>
+            </button>
+            <p class="customer-order__cancel-message" data-order-cancel-message role="status" aria-live="polite"></p>
+          {% elsif order.cancelled %}
+            <p class="customer-order__cancel-message customer-order__cancel-message--success" role="status">
+              Cancelled
+            </p>
+          {% endif %}
+        </div>
+
         {% render 'order-cancellation-request', order: order %}
       </aside>
     </div>
@@ -203,6 +226,44 @@
     background: #ffffff;
   }
 
+  .customer-order__button--cancel {
+    border: 0;
+    background: #14594b;
+    color: #ffffff;
+    cursor: pointer;
+  }
+
+  .customer-order__button--cancel:disabled {
+    cursor: progress;
+    opacity: 0.68;
+  }
+
+  .customer-order__realtime-cancel {
+    display: grid;
+    gap: 10px;
+    justify-items: start;
+  }
+
+  .customer-order__cancel-message {
+    margin: 0;
+    border-radius: 8px;
+    color: #14594b;
+    font-weight: 900;
+    line-height: 1.5;
+  }
+
+  .customer-order__cancel-message--success {
+    background: #dcfce7;
+    color: #166534;
+    padding: 12px 14px;
+  }
+
+  .customer-order__cancel-message--error {
+    background: #ffe4e6;
+    color: #9f1239;
+    padding: 12px 14px;
+  }
+
   .customer-order__layout {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(300px, 380px);
@@ -283,6 +344,53 @@
     }
   }
 {% endstylesheet %}
+
+{% javascript %}
+  (() => {
+    document.querySelectorAll('[data-order-realtime-cancel]').forEach((root) => {
+      const button = root.querySelector('[data-order-cancel-button]');
+      const label = root.querySelector('[data-order-cancel-label]');
+      const message = root.querySelector('[data-order-cancel-message]');
+      const orderId = root.dataset.orderId;
+
+      if (!button || !label || !message || !orderId) return;
+
+      button.addEventListener('click', async () => {
+        const originalLabel = label.textContent;
+
+        button.disabled = true;
+        label.textContent = 'Cancelling...';
+        message.textContent = '';
+        message.classList.remove('customer-order__cancel-message--success', 'customer-order__cancel-message--error');
+
+        try {
+          const response = await fetch('/api/orders/cancel', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ orderId })
+          });
+
+          const payload = await response.json();
+
+          if (!response.ok || !payload.success) {
+            throw new Error(payload.message || 'Unable to cancel this order.');
+          }
+
+          label.textContent = 'Cancelled';
+          message.textContent = payload.message || 'Order cancelled successfully';
+          message.classList.add('customer-order__cancel-message--success');
+        } catch (error) {
+          button.disabled = false;
+          label.textContent = originalLabel;
+          message.textContent = error.message;
+          message.classList.add('customer-order__cancel-message--error');
+        }
+      });
+    });
+  })();
+{% endjavascript %}
 
 {% schema %}
 {
