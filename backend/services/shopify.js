@@ -93,9 +93,13 @@ async function graphqlRequest(query, variables = {}) {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      Accept: "application/json",
       "X-Shopify-Access-Token": accessToken,
     },
-    body: JSON.stringify({ query, variables }),
+    body: JSON.stringify({
+      query,
+      variables,
+    }),
   });
 
   const payload = await response.json().catch(() => ({}));
