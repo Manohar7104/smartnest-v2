@@ -1,0 +1,62 @@
+{% doc %}
+  Renders semantic breadcrumb navigation for improved navigation and SEO.
+
+  Uses request.page_type for detection. Supports product, collection,
+  article, and page types with proper hierarchy.
+
+  @param {product} [product] - Optional product object for product pages
+  @param {collection} [collection] - Optional collection object
+
+  @example
+  {% render 'breadcrumbs', product: product %}
+  {% render 'breadcrumbs', collection: collection %}
+{% enddoc %}
+
+<nav class="breadcrumbs" aria-label="Breadcrumb">
+  <ol class="breadcrumbs__list">
+    <!-- Home link -->
+    <li class="breadcrumbs__item">
+      <a href="{{ routes.root_url }}" class="breadcrumbs__link">Home</a>
+    </li>
+
+    <!-- Product page: Home > Collection > Product -->
+    {% if request.page_type == 'product' %}
+      {% assign collection = product.collections.first | default: collection %}
+      {% if collection %}
+        <li class="breadcrumbs__item">
+          <a href="{{ collection.url }}" class="breadcrumbs__link">
+            {{ collection.title }}
+          </a>
+        </li>
+      {% endif %}
+      <li class="breadcrumbs__item" aria-current="page">
+        <span class="breadcrumbs__text">{{ product.title }}</span>
+      </li>
+
+    <!-- Collection page: Home > Collection -->
+    {% elsif request.page_type == 'collection' %}
+      <li class="breadcrumbs__item" aria-current="page">
+        <span class="breadcrumbs__text">{{ collection.title }}</span>
+      </li>
+
+    <!-- Article page: Home > Blog > Article -->
+    {% elsif request.page_type == 'article' %}
+      <li class="breadcrumbs__item">
+        <a href="{{ blog.url }}" class="breadcrumbs__link">
+          {{ blog.title }}
+        </a>
+      </li>
+      <li class="breadcrumbs__item" aria-current="page">
+        <span class="breadcrumbs__text">{{ article.title }}</span>
+      </li>
+
+    <!-- Page: Home > Page -->
+    {% elsif request.page_type == 'page' %}
+      <li class="breadcrumbs__item" aria-current="page">
+        <span class="breadcrumbs__text">{{ page.title }}</span>
+      </li>
+    {% endif %}
+  </ol>
+</nav>
+
+

@@ -1,0 +1,151 @@
+{% doc %}
+  Lightweight animation utilities using IntersectionObserver for reveal on scroll.
+
+  Provides utility classes and JavaScript for fade-up, fade-in, and reveal animations.
+  No external libraries required. Mobile-first approach.
+
+  @example
+  <div class="animate-fade-up">Fades up on scroll</div>
+  <div class="animate-fade-in">Fades in on scroll</div>
+{% enddoc %}
+
+{% stylesheet %}
+  /* Animation keyframes */
+  @keyframes fadeUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideInLeft {
+    from {
+      opacity: 0;
+      transform: translateX(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  /* Utility classes */
+  .animate-fade-up {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+
+  .animate-fade-up.revealed {
+    animation: fadeUp 0.6s ease forwards;
+  }
+
+  .animate-fade-in {
+    opacity: 0;
+    transition: opacity 0.6s ease;
+  }
+
+  .animate-fade-in.revealed {
+    animation: fadeIn 0.6s ease forwards;
+  }
+
+  .animate-slide-left {
+    opacity: 0;
+    transform: translateX(-20px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+
+  .animate-slide-left.revealed {
+    animation: slideInLeft 0.6s ease forwards;
+  }
+
+  /* Staggered animations for groups */
+  .animate-group > * {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  .animate-group.revealed > * {
+    animation: fadeUp 0.6s ease forwards;
+  }
+
+  .animate-group > *:nth-child(1) { animation-delay: 0s; }
+  .animate-group > *:nth-child(2) { animation-delay: 0.1s; }
+  .animate-group > *:nth-child(3) { animation-delay: 0.2s; }
+  .animate-group > *:nth-child(4) { animation-delay: 0.3s; }
+  .animate-group > *:nth-child(5) { animation-delay: 0.4s; }
+  .animate-group > *:nth-child(n+6) { animation-delay: 0.5s; }
+
+  /* Reduce motion for accessibility */
+  @media (prefers-reduced-motion: reduce) {
+    .animate-fade-up,
+    .animate-fade-in,
+    .animate-slide-left,
+    .animate-group > * {
+      animation: none !important;
+      transform: none !important;
+      opacity: 1 !important;
+      transition: none !important;
+    }
+  }
+{% endstylesheet %}
+
+{% javascript %}
+  (function() {
+    // Initialize IntersectionObserver for animations
+    const observerOptions = {
+      threshold: 0.1,
+      rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('revealed');
+          // Unobserve after animation to improve performance
+          observer.unobserve(entry.target);
+        }
+      });
+    }, observerOptions);
+
+    // Observe all elements with animation classes
+    document.querySelectorAll('.animate-fade-up, .animate-fade-in, .animate-slide-left, .animate-group').forEach((element) => {
+      // Skip if animation class already applied (e.g., on fast connections)
+      if (!element.classList.contains('revealed')) {
+        observer.observe(element);
+      }
+    });
+
+    // Fallback for elements that should animate immediately
+    window.addEventListener('load', () => {
+      document.querySelectorAll('.animate-fade-up, .animate-fade-in, .animate-slide-left, .animate-group').forEach((element) => {
+        if (!element.classList.contains('revealed')) {
+          const rect = element.getBoundingClientRect();
+          if (rect.top < window.innerHeight && rect.bottom > 0) {
+            element.classList.add('revealed');
+          }
+        }
+      });
+    });
+
+    // Expose utility function for manual triggering
+    window.animateElement = function(element) {
+      if (element && !element.classList.contains('revealed')) {
+        element.classList.add('revealed');
+      }
+    };
+  })();
+{% endjavascript %}

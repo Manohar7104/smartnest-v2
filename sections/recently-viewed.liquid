@@ -1,0 +1,206 @@
+<div class="recently-viewed">
+  <div class="recently-viewed__container">
+    <h2 class="recently-viewed__title">{{ 'recently_viewed.title' | t }}</h2>
+
+    <div class="recently-viewed__loading">
+      {{ 'recently_viewed.loading' | t }}
+    </div>
+
+    <div
+      class="recently-viewed__grid animate-group"
+      data-recently-viewed-grid
+      hidden
+    >
+    </div>
+
+    <div
+      class="recently-viewed__empty"
+      data-recently-viewed-empty
+      hidden
+    >
+      <p>{{ 'recently_viewed.empty' | t }}</p>
+    </div>
+  </div>
+</div>
+
+{% stylesheet %}
+  .recently-viewed {
+    margin: var(--space-lg) 0;
+    padding: var(--space-lg) var(--space-md);
+    background-color: var(--color-background-secondary);
+  }
+
+  .recently-viewed__container {
+    max-width: var(--max-page-width);
+    margin: 0 auto;
+  }
+
+  .recently-viewed__title {
+    margin-bottom: var(--space-md);
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+  }
+
+  .recently-viewed__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: var(--space-md);
+  }
+
+  .recently-viewed__item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    padding: var(--space-sm);
+    background-color: var(--color-background);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    text-decoration: none;
+    color: var(--color-text);
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+  }
+
+  .recently-viewed__item:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+  }
+
+  .recently-viewed__image {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    border-radius: var(--border-radius);
+    background-color: var(--color-background-tertiary);
+  }
+
+  .recently-viewed__content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
+
+  .recently-viewed__product-title {
+    font-weight: 500;
+    font-size: var(--font-size-sm);
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .recently-viewed__price {
+    font-weight: 600;
+    color: var(--color-price);
+  }
+
+  .recently-viewed__empty {
+    text-align: center;
+    padding: var(--space-lg);
+    color: var(--color-text-secondary);
+  }
+
+  .recently-viewed__loading {
+    text-align: center;
+    padding: var(--space-lg);
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-sm);
+  }
+
+  /* Mobile */
+  @media (max-width: 640px) {
+    .recently-viewed {
+      margin: var(--space-md) 0;
+      padding: var(--space-md);
+    }
+
+    .recently-viewed__grid {
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: var(--space-sm);
+    }
+
+    .recently-viewed__title {
+      font-size: var(--font-size-md);
+      margin-bottom: var(--space-sm);
+    }
+  }
+{% endstylesheet %}
+
+{% javascript %}
+  (function() {
+    const grid = document.querySelector('[data-recently-viewed-grid]');
+    const emptyState = document.querySelector('[data-recently-viewed-empty]');
+    const loadingState = document.querySelector('.recently-viewed__loading');
+
+    function renderRecentlyViewed() {
+      const products = window.SmartNest?.RecentlyViewed?.get?.() || [];
+
+      // Filter out current product if on product page
+      const currentProductId = document.querySelector('[data-product-id]')?.getAttribute('data-product-id');
+      const filteredProducts = products.filter(p => p.id !== currentProductId);
+
+      if (filteredProducts.length === 0) {
+        grid.hidden = true;
+        emptyState.hidden = false;
+        loadingState.hidden = true;
+        return;
+      }
+
+      // Clear grid
+      grid.innerHTML = '';
+
+      // Render products
+      filteredProducts.forEach((product) => {
+        const item = document.createElement('a');
+        item.href = product.url;
+        item.className = 'recently-viewed__item animate-fade-up';
+        item.innerHTML = `
+          <img
+            src="${product.image}"
+            alt="${product.title}"
+            class="recently-viewed__image"
+            loading="lazy"
+          >
+          <div class="recently-viewed__content">
+            <div class="recently-viewed__product-title">${product.title}</div>
+            <div class="recently-viewed__price">${product.price}</div>
+          </div>
+        `;
+        grid.appendChild(item);
+      });
+
+      grid.hidden = false;
+      emptyState.hidden = true;
+      loadingState.hidden = true;
+
+      // Trigger animations
+      grid.querySelectorAll('.animate-fade-up').forEach((el) => {
+        window.animateElement?.(el);
+      });
+    }
+
+    // Wait for recently viewed manager to load
+    if (window.SmartNest?.RecentlyViewed) {
+      renderRecentlyViewed();
+    } else {
+      // Fallback: wait for script to load
+      window.addEventListener('DOMContentLoaded', () => {
+        setTimeout(renderRecentlyViewed, 100);
+      });
+    }
+
+    // Listen for updates
+    window.addEventListener('smartnest:recentlyViewedUpdated', renderRecentlyViewed);
+  })();
+{% endjavascript %}
+
+{% schema %}
+{
+  "name": "Recently Viewed Products",
+  "settings": [],
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  }
+}
+{% endschema %}

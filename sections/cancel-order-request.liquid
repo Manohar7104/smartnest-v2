@@ -1,0 +1,334 @@
+{% liquid
+  assign customer_name = ''
+  if customer
+    assign customer_name = customer.name | default: customer.email
+  endif
+%}
+
+<section class="cancel-order" aria-labelledby="CancelOrderTitle-{{ section.id }}">
+  <div class="cancel-order__container">
+    <div class="cancel-order__intro">
+      <p class="cancel-order__eyebrow">SmartNest support</p>
+      <h1 id="CancelOrderTitle-{{ section.id }}">{{ section.settings.heading }}</h1>
+      <p>{{ section.settings.description }}</p>
+    </div>
+
+    <div class="cancel-order__grid">
+      <div class="cancel-order__panel">
+        {% form 'contact', id: 'CancelOrderRequestForm', class: 'cancel-order__form' %}
+          {% if form.posted_successfully? %}
+            <div class="cancel-order__message cancel-order__message--success" role="status" tabindex="-1">
+              {{ section.settings.success_message }}
+            </div>
+          {% endif %}
+
+          {% if form.errors %}
+            <div class="cancel-order__message cancel-order__message--error" role="alert" tabindex="-1">
+              {{ form.errors | default_errors }}
+            </div>
+          {% endif %}
+
+          <input type="hidden" name="contact[tags]" value="order-cancellation-request">
+          <input type="hidden" name="contact[subject]" value="Order cancellation request">
+
+          <div class="cancel-order__split">
+            <div class="cancel-order__field">
+              <label for="CancelOrderNumber-{{ section.id }}">Order number <span aria-hidden="true">*</span></label>
+              <input
+                id="CancelOrderNumber-{{ section.id }}"
+                type="text"
+                name="contact[order_number]"
+                autocomplete="off"
+                required
+                {% if form.errors contains 'order_number' %}aria-invalid="true"{% endif %}
+              >
+            </div>
+
+            <div class="cancel-order__field">
+              <label for="CancelCustomerName-{{ section.id }}">Customer name <span aria-hidden="true">*</span></label>
+              <input
+                id="CancelCustomerName-{{ section.id }}"
+                type="text"
+                name="contact[name]"
+                autocomplete="name"
+                value="{{ customer_name | escape }}"
+                required
+                {% if form.errors contains 'name' %}aria-invalid="true"{% endif %}
+              >
+            </div>
+          </div>
+
+          <div class="cancel-order__split">
+            <div class="cancel-order__field">
+              <label for="CancelEmail-{{ section.id }}">Email <span aria-hidden="true">*</span></label>
+              <input
+                id="CancelEmail-{{ section.id }}"
+                type="email"
+                name="contact[email]"
+                autocomplete="email"
+                autocorrect="off"
+                autocapitalize="off"
+                value="{% if customer %}{{ customer.email | escape }}{% endif %}"
+                required
+                {% if form.errors contains 'email' %}aria-invalid="true"{% endif %}
+              >
+            </div>
+
+            <div class="cancel-order__field">
+              <label for="CancelPhone-{{ section.id }}">Phone</label>
+              <input
+                id="CancelPhone-{{ section.id }}"
+                type="tel"
+                name="contact[phone]"
+                autocomplete="tel"
+              >
+            </div>
+          </div>
+
+          <div class="cancel-order__field">
+            <label for="CancelReason-{{ section.id }}">Cancellation reason <span aria-hidden="true">*</span></label>
+            <select id="CancelReason-{{ section.id }}" name="contact[cancellation_reason]" required>
+              <option value="">Select a reason</option>
+              <option value="Ordered by mistake">Ordered by mistake</option>
+              <option value="Found a better alternative">Found a better alternative</option>
+              <option value="Delivery taking too long">Delivery taking too long</option>
+              <option value="Payment issue">Payment issue</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <div class="cancel-order__field">
+            <label for="CancelComments-{{ section.id }}">Additional comments</label>
+            <textarea
+              id="CancelComments-{{ section.id }}"
+              name="contact[body]"
+              rows="6"
+              placeholder="Share anything that helps our team review your request."
+            ></textarea>
+          </div>
+
+          <button type="submit" class="cancel-order__button">Submit cancellation request</button>
+        {% endform %}
+      </div>
+
+      <aside class="cancel-order__aside" aria-label="Cancellation request details">
+        <h2>{{ section.settings.aside_heading }}</h2>
+        <p>{{ section.settings.aside_text }}</p>
+        <ul>
+          <li>Requests are reviewed by SmartNest support before an order is cancelled.</li>
+          <li>Submitting this form does not guarantee cancellation if the order has already shipped.</li>
+          <li>Use the same email address from checkout so we can find your order quickly.</li>
+        </ul>
+      </aside>
+    </div>
+  </div>
+</section>
+
+{% stylesheet %}
+  .cancel-order {
+    --cancel-accent: #14594b;
+    --cancel-ink: #16231f;
+    color: var(--cancel-ink);
+    padding-block: clamp(36px, 7vw, 88px);
+  }
+
+  .cancel-order__container {
+    width: min(1040px, calc(100% - 32px));
+    margin-inline: auto;
+  }
+
+  .cancel-order__intro {
+    max-width: 720px;
+    margin-bottom: 28px;
+  }
+
+  .cancel-order__eyebrow {
+    margin: 0 0 8px;
+    color: var(--cancel-accent);
+    font-size: 0.78rem;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .cancel-order h1 {
+    margin: 0 0 12px;
+    font-size: clamp(2.1rem, 5vw, 3.6rem);
+    line-height: 1;
+  }
+
+  .cancel-order__intro p,
+  .cancel-order__aside p,
+  .cancel-order__aside li {
+    color: rgba(22, 35, 31, 0.68);
+    line-height: 1.6;
+  }
+
+  .cancel-order__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 0.72fr);
+    gap: 22px;
+    align-items: start;
+  }
+
+  .cancel-order__panel,
+  .cancel-order__aside {
+    border: 1px solid rgba(20, 89, 75, 0.14);
+    border-radius: 8px;
+    background: #ffffff;
+    padding: clamp(20px, 4vw, 32px);
+    box-shadow: 0 14px 34px rgba(20, 89, 75, 0.08);
+  }
+
+  .cancel-order__form,
+  .cancel-order__field,
+  .cancel-order__aside {
+    display: grid;
+    gap: 14px;
+  }
+
+  .cancel-order__split {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .cancel-order__field label {
+    font-weight: 900;
+  }
+
+  .cancel-order__field input,
+  .cancel-order__field select,
+  .cancel-order__field textarea {
+    width: 100%;
+    min-height: 48px;
+    border: 1px solid rgba(20, 89, 75, 0.2);
+    border-radius: 8px;
+    padding: 12px 14px;
+    background: #ffffff;
+    color: inherit;
+  }
+
+  .cancel-order__field textarea {
+    min-height: 148px;
+    resize: vertical;
+  }
+
+  .cancel-order__field input:focus-visible,
+  .cancel-order__field select:focus-visible,
+  .cancel-order__field textarea:focus-visible {
+    border-color: var(--cancel-accent);
+    outline: 2px solid rgba(20, 89, 75, 0.24);
+    outline-offset: 2px;
+  }
+
+  .cancel-order__button {
+    display: inline-flex;
+    min-height: 48px;
+    align-items: center;
+    justify-content: center;
+    justify-self: start;
+    border: 0;
+    border-radius: 8px;
+    background: var(--cancel-accent);
+    color: #ffffff;
+    cursor: pointer;
+    padding: 12px 18px;
+    font-weight: 900;
+    text-decoration: none;
+    transition: transform 160ms ease, opacity 160ms ease;
+  }
+
+  .cancel-order__button:hover {
+    transform: translateY(-1px);
+  }
+
+  .cancel-order__message {
+    border-radius: 8px;
+    padding: 12px 14px;
+    line-height: 1.5;
+  }
+
+  .cancel-order__message--success {
+    background: #dcfce7;
+    color: #166534;
+  }
+
+  .cancel-order__message--error {
+    background: #ffe4e6;
+    color: #9f1239;
+  }
+
+  .cancel-order__aside h2 {
+    margin: 0;
+    font-size: clamp(1.35rem, 3vw, 1.8rem);
+  }
+
+  .cancel-order__aside ul {
+    display: grid;
+    gap: 10px;
+    margin: 0;
+    padding-left: 20px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cancel-order__button {
+      transition: none;
+    }
+  }
+
+  @media (max-width: 779px) {
+    .cancel-order__container {
+      width: min(100% - 24px, 1040px);
+    }
+
+    .cancel-order__grid,
+    .cancel-order__split {
+      grid-template-columns: 1fr;
+    }
+
+    .cancel-order__button {
+      width: 100%;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Cancel order request",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Request order cancellation"
+    },
+    {
+      "type": "textarea",
+      "id": "description",
+      "label": "Description",
+      "default": "Send your order details to SmartNest support and we will review the cancellation request as quickly as possible."
+    },
+    {
+      "type": "textarea",
+      "id": "success_message",
+      "label": "Success message",
+      "default": "Your cancellation request has been sent. SmartNest support will review your order and follow up by email."
+    },
+    {
+      "type": "text",
+      "id": "aside_heading",
+      "label": "Aside heading",
+      "default": "Before you submit"
+    },
+    {
+      "type": "textarea",
+      "id": "aside_text",
+      "label": "Aside text",
+      "default": "This native Shopify contact form sends your request to the store inbox without using an app or Admin API."
+    }
+  ],
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  }
+}
+{% endschema %}

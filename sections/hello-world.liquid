@@ -1,143 +1,1066 @@
-{% comment %}
-  Welcome to Shopify theme development!
-{% endcomment %}
+{% liquid
+  assign featured_collection = section.settings.featured_collection
+  if featured_collection == blank
+    assign featured_collection = collections.all
+  endif
 
-<div class="welcome full-width">
-  <div class="welcome-content">
-    <div>
-      <h1>Hello, World!</h1>
+  assign hero_link = section.settings.hero_primary_link | default: routes.all_products_collection_url
+  assign category_1 = section.settings.category_1
+  assign category_2 = section.settings.category_2
+  assign category_3 = section.settings.category_3
+  assign category_4 = section.settings.category_4
+  assign has_selected_categories = false
 
-      <p class="welcome-description">
-        The Skeleton theme is a minimal, carefully structured Shopify theme designed to help you quickly get started.
-        Designed with modularity, maintainability, and Shopify's best practices in mind.
-      </p>
+  if category_1 != blank
+    assign has_selected_categories = true
+  endif
 
-      <p class="welcome-description">
-        Themes shape the online store experience for merchants and their customers. Build fast, flexible themes at scale
-        using Liquid, Shopify's theme templating language, along with HTML, CSS, JavaScript, and JSON.
-      </p>
+  if category_2 != blank
+    assign has_selected_categories = true
+  endif
+
+  if category_3 != blank
+    assign has_selected_categories = true
+  endif
+
+  if category_4 != blank
+    assign has_selected_categories = true
+  endif
+%}
+
+<section
+  id="smartnest-home-{{ section.id }}"
+  class="smartnest-home"
+  style="
+    --smartnest-accent: {{ section.settings.accent_color }};
+    --smartnest-ink: {{ section.settings.text_color }};
+    --smartnest-soft: {{ section.settings.soft_background }};
+    --smartnest-hero-bg: {{ section.settings.hero_background }};
+  "
+>
+  <div class="smartnest-hero full-width">
+    <div class="smartnest-hero__inner">
+      <div class="smartnest-hero__content">
+        {% if section.settings.hero_kicker != blank %}
+          <p class="smartnest-eyebrow">{{ section.settings.hero_kicker | escape }}</p>
+        {% endif %}
+
+        <h1 class="smartnest-hero__title">{{ section.settings.hero_title | escape }}</h1>
+
+        {% if section.settings.hero_text != blank %}
+          <div class="smartnest-hero__text">{{ section.settings.hero_text }}</div>
+        {% endif %}
+
+        <div class="smartnest-hero__actions">
+          <a class="smartnest-button smartnest-button--primary" href="{{ hero_link }}">
+            {{ section.settings.hero_primary_label | escape }}
+          </a>
+
+          {% if section.settings.hero_secondary_link != blank %}
+            <a class="smartnest-button smartnest-button--secondary" href="{{ section.settings.hero_secondary_link }}">
+              {{ section.settings.hero_secondary_label | escape }}
+            </a>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="smartnest-hero__media" aria-label="{{ section.settings.hero_title | escape }}">
+        {% if section.settings.hero_image != blank %}
+          {{
+            section.settings.hero_image
+            | image_url: width: 1200
+            | image_tag:
+              widths: '480, 720, 960, 1200',
+              sizes: '(min-width: 990px) 48vw, 100vw',
+              loading: 'eager',
+              fetchpriority: 'high',
+              alt: section.settings.hero_title
+          }}
+        {% elsif featured_collection.image != blank %}
+          {{
+            featured_collection.image
+            | image_url: width: 1200
+            | image_tag:
+              widths: '480, 720, 960, 1200',
+              sizes: '(min-width: 990px) 48vw, 100vw',
+              loading: 'eager',
+              fetchpriority: 'high',
+              alt: featured_collection.title
+          }}
+        {% else %}
+          {{ 'lifestyle-1' | placeholder_svg_tag: 'smartnest-placeholder' }}
+        {% endif %}
+      </div>
     </div>
-    <div class="icon">
-      <img src="{{ 'shoppy-x-ray.svg' | asset_url }}" width="300" height="300">
+  </div>
+
+  <div class="smartnest-section smartnest-categories">
+    <div class="smartnest-section__header">
+      <p class="smartnest-eyebrow">{{ section.settings.category_kicker | escape }}</p>
+      <h2>{{ section.settings.category_title | escape }}</h2>
+    </div>
+
+    <div class="smartnest-category-grid">
+      {% if has_selected_categories %}
+        {% for collection_setting in (1..4) %}
+          {% liquid
+            assign category = blank
+            if collection_setting == 1
+              assign category = category_1
+            elsif collection_setting == 2
+              assign category = category_2
+            elsif collection_setting == 3
+              assign category = category_3
+            elsif collection_setting == 4
+              assign category = category_4
+            endif
+          %}
+
+          {% if category != blank %}
+            <a class="smartnest-category-card" href="{{ category.url }}">
+              <span class="smartnest-category-card__image">
+                {% if category.image != blank %}
+                  {{
+                    category.image
+                    | image_url: width: 700
+                    | image_tag:
+                      widths: '320, 480, 700',
+                      sizes: '(min-width: 990px) 25vw, (min-width: 640px) 50vw, 100vw',
+                      loading: 'lazy',
+                      alt: category.title
+                  }}
+                {% elsif category.products.first.featured_image != blank %}
+                  {{
+                    category.products.first.featured_image
+                    | image_url: width: 700
+                    | image_tag:
+                      widths: '320, 480, 700',
+                      sizes: '(min-width: 990px) 25vw, (min-width: 640px) 50vw, 100vw',
+                      loading: 'lazy',
+                      alt: category.title
+                  }}
+                {% else %}
+                  {{ 'collection-1' | placeholder_svg_tag: 'smartnest-placeholder' }}
+                {% endif %}
+              </span>
+              <span class="smartnest-category-card__body">
+                <span>{{ category.title | escape }}</span>
+                <small>{{ category.products_count }} products</small>
+              </span>
+            </a>
+          {% endif %}
+        {% endfor %}
+      {% else %}
+        {% for category in collections limit: 4 %}
+          <a class="smartnest-category-card" href="{{ category.url }}">
+            <span class="smartnest-category-card__image">
+              {% if category.image != blank %}
+                {{
+                  category.image
+                  | image_url: width: 700
+                  | image_tag:
+                    widths: '320, 480, 700',
+                    sizes: '(min-width: 990px) 25vw, (min-width: 640px) 50vw, 100vw',
+                    loading: 'lazy',
+                    alt: category.title
+                }}
+              {% else %}
+                {{ 'collection-1' | placeholder_svg_tag: 'smartnest-placeholder' }}
+              {% endif %}
+            </span>
+            <span class="smartnest-category-card__body">
+              <span>{{ category.title | escape }}</span>
+              <small>{{ category.products_count }} products</small>
+            </span>
+          </a>
+        {% endfor %}
+      {% endif %}
     </div>
   </div>
-</div>
 
-<div class="highlights">
-  <div class="highlight">
-    <h3>Key Concepts</h3>
-    <p class="highlight-description">
-      Shopify themes are a package of template files, building blocks, and supporting assets. Use these building blocks
-      to create modular, customizable themes.
-    </p>
-    <p>{{ 'Learn more about key concepts' | link_to: 'https://shopify.dev/docs/storefronts/themes/architecture' }}</p>
+  <div class="smartnest-section smartnest-featured">
+    <div class="smartnest-section__header smartnest-section__header--split">
+      <div>
+        <p class="smartnest-eyebrow">{{ section.settings.featured_kicker | escape }}</p>
+        <h2>{{ section.settings.featured_title | escape }}</h2>
+      </div>
+
+      {% if featured_collection != blank %}
+        <a class="smartnest-text-link" href="{{ featured_collection.url }}">
+          {{ section.settings.featured_link_label | escape }}
+        </a>
+      {% endif %}
+    </div>
+
+    {% if featured_collection != blank and featured_collection.products_count > 0 %}
+      <div class="smartnest-product-grid">
+        {% for product in featured_collection.products limit: section.settings.products_to_show %}
+          <article class="smartnest-product-card">
+            <a class="smartnest-product-card__image" href="{{ product.url }}" aria-label="{{ product.title | escape }}">
+              {% if product.featured_image != blank %}
+                {{
+                  product.featured_image
+                  | image_url: width: 700
+                  | image_tag:
+                    widths: '260, 420, 700',
+                    sizes: '(min-width: 990px) 25vw, (min-width: 640px) 50vw, 100vw',
+                    loading: 'lazy',
+                    alt: product.featured_image.alt | default: product.title
+                }}
+              {% else %}
+                {{ 'product-1' | placeholder_svg_tag: 'smartnest-placeholder' }}
+              {% endif %}
+
+              {% if product.compare_at_price > product.price %}
+                <span class="smartnest-product-card__badge">Sale</span>
+              {% endif %}
+            </a>
+
+            <div class="smartnest-product-card__body">
+              <h3>
+                <a href="{{ product.url }}">{{ product.title | escape }}</a>
+              </h3>
+
+              <p class="smartnest-product-card__vendor">{{ product.vendor | escape }}</p>
+
+              <div class="smartnest-product-card__price">
+                <span>{{ product.price | money }}</span>
+                {% if product.compare_at_price > product.price %}
+                  <s>{{ product.compare_at_price | money }}</s>
+                {% endif %}
+              </div>
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="smartnest-empty">
+        <p>Add products to a collection, then select it in this section.</p>
+      </div>
+    {% endif %}
   </div>
 
-  <div class="highlight">
-    <h3>Liquid</h3>
-    <p class="highlight-description">
-      The Liquid templating language is the backbone of Shopify themes, and is used to load dynamic content on
-      storefronts. Extend Liquid objects to store and present custom data using metafields.
-    </p>
-    <p>{{ 'View the Liquid reference' | link_to: 'https://shopify.dev/docs/api/liquid' }}</p>
+  <div class="smartnest-section smartnest-benefits full-width">
+    <div class="smartnest-benefits__inner">
+      <div class="smartnest-section__header">
+        <p class="smartnest-eyebrow">{{ section.settings.benefits_kicker | escape }}</p>
+        <h2>{{ section.settings.benefits_title | escape }}</h2>
+      </div>
+
+      <div class="smartnest-benefit-grid">
+        <article class="smartnest-benefit">
+          <span aria-hidden="true">01</span>
+          <h3>{{ section.settings.benefit_1_title | escape }}</h3>
+          <div>{{ section.settings.benefit_1_text }}</div>
+        </article>
+
+        <article class="smartnest-benefit">
+          <span aria-hidden="true">02</span>
+          <h3>{{ section.settings.benefit_2_title | escape }}</h3>
+          <div>{{ section.settings.benefit_2_text }}</div>
+        </article>
+
+        <article class="smartnest-benefit">
+          <span aria-hidden="true">03</span>
+          <h3>{{ section.settings.benefit_3_title | escape }}</h3>
+          <div>{{ section.settings.benefit_3_text }}</div>
+        </article>
+
+        <article class="smartnest-benefit">
+          <span aria-hidden="true">04</span>
+          <h3>{{ section.settings.benefit_4_title | escape }}</h3>
+          <div>{{ section.settings.benefit_4_text }}</div>
+        </article>
+      </div>
+    </div>
   </div>
 
-  <div class="highlight">
-    <h3>Best Practices</h3>
-    <p class="highlight-description">
-      To optimize your theme development experience, Shopify has established a set of best practices that you can refer
-      to when developing your theme and setting up your toolchains and processes.
-    </p>
-    <p>{{ 'Follow best practices' | link_to: 'https://shopify.dev/docs/storefronts/themes/best-practices' }}</p>
+  <div class="smartnest-section smartnest-testimonials">
+    <div class="smartnest-section__header">
+      <p class="smartnest-eyebrow">{{ section.settings.testimonials_kicker | escape }}</p>
+      <h2>{{ section.settings.testimonials_title | escape }}</h2>
+    </div>
+
+    <div class="smartnest-testimonial-grid">
+      <figure class="smartnest-testimonial">
+        <blockquote>{{ section.settings.testimonial_1_text }}</blockquote>
+        <figcaption>{{ section.settings.testimonial_1_author | escape }}</figcaption>
+      </figure>
+
+      <figure class="smartnest-testimonial">
+        <blockquote>{{ section.settings.testimonial_2_text }}</blockquote>
+        <figcaption>{{ section.settings.testimonial_2_author | escape }}</figcaption>
+      </figure>
+
+      <figure class="smartnest-testimonial">
+        <blockquote>{{ section.settings.testimonial_3_text }}</blockquote>
+        <figcaption>{{ section.settings.testimonial_3_author | escape }}</figcaption>
+      </figure>
+    </div>
   </div>
-</div>
+
+  <div class="smartnest-newsletter full-width">
+    <div class="smartnest-newsletter__inner">
+      <div>
+        <p class="smartnest-eyebrow">{{ section.settings.newsletter_kicker | escape }}</p>
+        <h2>{{ section.settings.newsletter_title | escape }}</h2>
+        <div class="smartnest-newsletter__text">{{ section.settings.newsletter_text }}</div>
+      </div>
+
+      {% form 'customer', class: 'smartnest-newsletter__form' %}
+        <input type="hidden" name="contact[tags]" value="newsletter">
+
+        <label class="visually-hidden" for="NewsletterEmail-{{ section.id }}">Email address</label>
+        <div class="smartnest-newsletter__field">
+          <input
+            id="NewsletterEmail-{{ section.id }}"
+            type="email"
+            name="contact[email]"
+            value="{{ form.email }}"
+            autocorrect="off"
+            autocapitalize="off"
+            autocomplete="email"
+            placeholder="{{ section.settings.newsletter_placeholder | escape }}"
+            required
+          >
+          <button class="smartnest-button smartnest-button--primary" type="submit">
+            {{ section.settings.newsletter_button_label | escape }}
+          </button>
+        </div>
+
+        {% if form.posted_successfully? %}
+          <p class="smartnest-form-message" tabindex="-1">Thanks for subscribing.</p>
+        {% endif %}
+
+        {% if form.errors %}
+          <div class="smartnest-form-message smartnest-form-message--error">
+            {{ form.errors | default_errors }}
+          </div>
+        {% endif %}
+      {% endform %}
+    </div>
+  </div>
+</section>
 
 {% stylesheet %}
-  .welcome {
-    display: grid;
-    grid-template-columns: var(--content-grid);
-    background-color: #f6f6f7;
-    padding: 72px 0;
+  .smartnest-home {
+    color: var(--smartnest-ink);
   }
 
-  .welcome-content {
-    grid-column: 2;
-    display: flex;
-    justify-content: space-between;
+  .smartnest-home a {
+    color: inherit;
+  }
+
+  .smartnest-hero {
+    background: var(--smartnest-hero-bg);
+  }
+
+  .smartnest-hero__inner,
+  .smartnest-section,
+  .smartnest-benefits__inner,
+  .smartnest-newsletter__inner {
+    width: min(1180px, calc(100% - 32px));
+    margin-inline: auto;
+  }
+
+  .smartnest-hero__inner {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(320px, 1.1fr);
+    gap: clamp(28px, 5vw, 72px);
     align-items: center;
-    gap: 1rem;
+    min-height: clamp(560px, 72vh, 760px);
+    padding-block: clamp(48px, 8vw, 96px);
+  }
+
+  .smartnest-eyebrow {
+    margin: 0 0 12px;
+    color: var(--smartnest-accent);
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0;
+    text-transform: uppercase;
+  }
+
+  .smartnest-hero__title {
+    max-width: 12ch;
+    margin: 0;
+    color: var(--smartnest-ink);
+    font-size: clamp(2.5rem, 7vw, 5.6rem);
+    line-height: 0.98;
+  }
+
+  .smartnest-hero__text {
+    max-width: 56ch;
+    margin-top: 22px;
+    color: rgba(22, 35, 31, 0.78);
+    font-size: 1.06rem;
+    line-height: 1.7;
+  }
+
+  .smartnest-hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 28px;
+  }
+
+  .smartnest-button {
+    display: inline-flex;
+    min-height: 48px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    padding: 12px 20px;
+    font-weight: 800;
+    line-height: 1;
+    text-decoration: none;
+    transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease;
+  }
+
+  .smartnest-button:hover {
+    transform: translateY(-1px);
+  }
+
+  .smartnest-button--primary {
+    background: var(--smartnest-accent);
+    color: #ffffff;
+  }
+
+  .smartnest-button--secondary {
+    border-color: rgba(20, 89, 75, 0.28);
+    background: #ffffff;
+    color: var(--smartnest-accent);
+  }
+
+  .smartnest-hero__media,
+  .smartnest-category-card__image,
+  .smartnest-product-card__image {
+    background: #edf3ef;
+    overflow: hidden;
+  }
+
+  .smartnest-hero__media {
+    aspect-ratio: 5 / 4;
+    border-radius: 8px;
+    box-shadow: 0 24px 70px rgba(18, 54, 44, 0.16);
+  }
+
+  .smartnest-hero__media img,
+  .smartnest-category-card__image img,
+  .smartnest-product-card__image img,
+  .smartnest-placeholder {
     width: 100%;
-    padding: 0 24px;
+    height: 100%;
+    object-fit: cover;
   }
 
-  .welcome-description {
-    max-width: 80ch;
-    line-height: 1.4;
-    margin-top: 1.5rem;
+  .smartnest-section {
+    padding-block: clamp(48px, 8vw, 88px);
   }
 
-  .icon {
-    width: 300px;
+  .smartnest-section__header {
+    max-width: 720px;
+    margin-bottom: 32px;
   }
 
-  .highlights {
+  .smartnest-section__header--split {
+    display: flex;
+    max-width: none;
+    align-items: end;
+    justify-content: space-between;
+    gap: 20px;
+  }
+
+  .smartnest-section__header h2,
+  .smartnest-newsletter h2 {
+    margin: 0;
+    color: var(--smartnest-ink);
+    font-size: clamp(1.9rem, 4vw, 3.1rem);
+    line-height: 1.08;
+  }
+
+  .smartnest-category-grid,
+  .smartnest-product-grid,
+  .smartnest-benefit-grid,
+  .smartnest-testimonial-grid {
     display: grid;
-    gap: 2rem;
-    grid-template-columns: repeat(3, 1fr);
-    margin-top: 50px;
+    gap: 18px;
   }
 
-  @media (max-width: 1100px) {
-    .highlights {
+  .smartnest-category-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .smartnest-category-card,
+  .smartnest-product-card,
+  .smartnest-benefit,
+  .smartnest-testimonial {
+    border: 1px solid rgba(20, 89, 75, 0.12);
+    border-radius: 8px;
+    background: #ffffff;
+  }
+
+  .smartnest-category-card {
+    display: grid;
+    min-height: 280px;
+    overflow: hidden;
+    text-decoration: none;
+  }
+
+  .smartnest-category-card__image {
+    aspect-ratio: 4 / 3;
+  }
+
+  .smartnest-category-card__body {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px;
+    font-weight: 800;
+  }
+
+  .smartnest-category-card__body small {
+    flex: 0 0 auto;
+    color: rgba(22, 35, 31, 0.58);
+    font-size: 0.78rem;
+    font-weight: 700;
+  }
+
+  .smartnest-text-link {
+    color: var(--smartnest-accent);
+    font-weight: 800;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+
+  .smartnest-product-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .smartnest-product-card {
+    overflow: hidden;
+  }
+
+  .smartnest-product-card__image {
+    position: relative;
+    display: block;
+    aspect-ratio: 1 / 1;
+  }
+
+  .smartnest-product-card__badge {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    border-radius: 999px;
+    background: #ffffff;
+    color: var(--smartnest-accent);
+    padding: 6px 10px;
+    font-size: 0.75rem;
+    font-weight: 800;
+  }
+
+  .smartnest-product-card__body {
+    padding: 16px;
+  }
+
+  .smartnest-product-card h3 {
+    margin: 0 0 8px;
+    font-size: 1rem;
+    line-height: 1.35;
+  }
+
+  .smartnest-product-card h3 a {
+    text-decoration: none;
+  }
+
+  .smartnest-product-card__vendor {
+    margin: 0 0 12px;
+    color: rgba(22, 35, 31, 0.58);
+    font-size: 0.82rem;
+  }
+
+  .smartnest-product-card__price {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: baseline;
+    color: var(--smartnest-accent);
+    font-weight: 900;
+  }
+
+  .smartnest-product-card__price s {
+    color: rgba(22, 35, 31, 0.46);
+    font-weight: 600;
+  }
+
+  .smartnest-benefits {
+    background: var(--smartnest-soft);
+  }
+
+  .smartnest-benefits__inner {
+    padding-block: clamp(48px, 8vw, 88px);
+  }
+
+  .smartnest-benefit-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .smartnest-benefit {
+    padding: 22px;
+  }
+
+  .smartnest-benefit span {
+    display: inline-flex;
+    margin-bottom: 28px;
+    color: var(--smartnest-accent);
+    font-weight: 900;
+  }
+
+  .smartnest-benefit h3 {
+    margin: 0 0 10px;
+    font-size: 1.1rem;
+  }
+
+  .smartnest-benefit div,
+  .smartnest-testimonial blockquote,
+  .smartnest-newsletter__text {
+    color: rgba(22, 35, 31, 0.72);
+    line-height: 1.65;
+  }
+
+  .smartnest-testimonial-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .smartnest-testimonial {
+    margin: 0;
+    padding: 24px;
+  }
+
+  .smartnest-testimonial blockquote {
+    margin: 0 0 20px;
+  }
+
+  .smartnest-testimonial figcaption {
+    color: var(--smartnest-ink);
+    font-weight: 900;
+  }
+
+  .smartnest-newsletter {
+    background: var(--smartnest-soft);
+  }
+
+  .smartnest-newsletter__inner {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(320px, 0.8fr);
+    gap: clamp(24px, 5vw, 56px);
+    align-items: center;
+    padding-block: clamp(48px, 8vw, 76px);
+  }
+
+  .smartnest-newsletter__field {
+    display: flex;
+    gap: 10px;
+  }
+
+  .smartnest-newsletter__field input {
+    width: 100%;
+    min-height: 48px;
+    border: 1px solid rgba(20, 89, 75, 0.18);
+    border-radius: 8px;
+    background: #ffffff;
+    color: var(--smartnest-ink);
+    padding: 12px 14px;
+  }
+
+  .smartnest-form-message {
+    margin-top: 12px;
+    font-weight: 700;
+  }
+
+  .smartnest-form-message--error {
+    color: #9f1239;
+  }
+
+  .smartnest-empty {
+    border: 1px dashed rgba(20, 89, 75, 0.28);
+    border-radius: 8px;
+    padding: 28px;
+    text-align: center;
+  }
+
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  @media (max-width: 989px) {
+    .smartnest-hero__inner,
+    .smartnest-newsletter__inner {
+      grid-template-columns: 1fr;
+    }
+
+    .smartnest-hero__title {
+      max-width: 14ch;
+    }
+
+    .smartnest-category-grid,
+    .smartnest-product-grid,
+    .smartnest-benefit-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .smartnest-testimonial-grid {
       grid-template-columns: 1fr;
     }
   }
 
-  .highlight {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    padding: 24px;
-    border-radius: 8px;
-    background-color: #eef3ff;
-    color: rgb(92, 95, 98);
-    line-height: 1.4;
-  }
+  @media (max-width: 639px) {
+    .smartnest-hero__inner,
+    .smartnest-section,
+    .smartnest-benefits__inner,
+    .smartnest-newsletter__inner {
+      width: min(100% - 24px, 1180px);
+    }
 
-  .highlight > * + * {
-    margin-top: 1rem;
-  }
+    .smartnest-hero__inner {
+      min-height: auto;
+    }
 
-  .highlight h3 {
-    font-size: 1rem;
-    color: rgb(32, 34, 35);
-  }
+    .smartnest-hero__actions,
+    .smartnest-newsletter__field {
+      flex-direction: column;
+    }
 
-  .highlight-description {
-    flex: 1 1;
-  }
+    .smartnest-button {
+      width: 100%;
+    }
 
-  .highlight a {
-    display: flex;
-    width: fit-content;
-    background-color: rgb(250, 251, 251);
-    box-shadow: rgba(0, 0, 0, 0.2) 0px -3px 0px 0px inset, rgba(255, 255, 255, 0.9) 0px 2px 0px 0px inset;
-    border: 1px solid rgb(140, 145, 150);
-    border-radius: 4px;
-    color: rgb(92, 95, 98);
-    padding: 3px 10px 5px;
-    text-decoration: none;
+    .smartnest-section__header--split {
+      align-items: start;
+      flex-direction: column;
+    }
+
+    .smartnest-category-grid,
+    .smartnest-product-grid,
+    .smartnest-benefit-grid {
+      grid-template-columns: 1fr;
+    }
   }
 {% endstylesheet %}
 
 {% schema %}
 {
-  "name": "Hello World",
-  "settings": [],
+  "name": "SmartNest homepage",
+  "settings": [
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "Accent color",
+      "default": "#14594b"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text color",
+      "default": "#16231f"
+    },
+    {
+      "type": "color",
+      "id": "soft_background",
+      "label": "Soft background",
+      "default": "#eef6f1"
+    },
+    {
+      "type": "header",
+      "content": "Hero banner"
+    },
+    {
+      "type": "text",
+      "id": "hero_kicker",
+      "label": "Kicker",
+      "default": "Smart home essentials"
+    },
+    {
+      "type": "text",
+      "id": "hero_title",
+      "label": "Heading",
+      "default": "Smarter living starts at home"
+    },
+    {
+      "type": "richtext",
+      "id": "hero_text",
+      "label": "Text",
+      "default": "<p>Upgrade every room with connected devices, clever organizers, and practical tech built for calmer daily routines.</p>"
+    },
+    {
+      "type": "image_picker",
+      "id": "hero_image",
+      "label": "Image"
+    },
+    {
+      "type": "color",
+      "id": "hero_background",
+      "label": "Background",
+      "default": "#f7fbf8"
+    },
+    {
+      "type": "text",
+      "id": "hero_primary_label",
+      "label": "Primary button label",
+      "default": "Shop smart devices"
+    },
+    {
+      "type": "url",
+      "id": "hero_primary_link",
+      "label": "Primary button link"
+    },
+    {
+      "type": "text",
+      "id": "hero_secondary_label",
+      "label": "Secondary button label",
+      "default": "Browse categories"
+    },
+    {
+      "type": "url",
+      "id": "hero_secondary_link",
+      "label": "Secondary button link"
+    },
+    {
+      "type": "header",
+      "content": "Shop by category"
+    },
+    {
+      "type": "text",
+      "id": "category_kicker",
+      "label": "Kicker",
+      "default": "Shop by category"
+    },
+    {
+      "type": "text",
+      "id": "category_title",
+      "label": "Heading",
+      "default": "Find upgrades for every corner of your home"
+    },
+    {
+      "type": "collection",
+      "id": "category_1",
+      "label": "Category 1"
+    },
+    {
+      "type": "collection",
+      "id": "category_2",
+      "label": "Category 2"
+    },
+    {
+      "type": "collection",
+      "id": "category_3",
+      "label": "Category 3"
+    },
+    {
+      "type": "collection",
+      "id": "category_4",
+      "label": "Category 4"
+    },
+    {
+      "type": "header",
+      "content": "Featured products"
+    },
+    {
+      "type": "text",
+      "id": "featured_kicker",
+      "label": "Kicker",
+      "default": "Featured products"
+    },
+    {
+      "type": "text",
+      "id": "featured_title",
+      "label": "Heading",
+      "default": "Popular picks for a connected home"
+    },
+    {
+      "type": "collection",
+      "id": "featured_collection",
+      "label": "Featured collection"
+    },
+    {
+      "type": "range",
+      "id": "products_to_show",
+      "label": "Products to show",
+      "min": 4,
+      "max": 12,
+      "step": 1,
+      "default": 8
+    },
+    {
+      "type": "text",
+      "id": "featured_link_label",
+      "label": "Collection link label",
+      "default": "View all"
+    },
+    {
+      "type": "header",
+      "content": "Why choose SmartNest"
+    },
+    {
+      "type": "text",
+      "id": "benefits_kicker",
+      "label": "Kicker",
+      "default": "Why choose SmartNest"
+    },
+    {
+      "type": "text",
+      "id": "benefits_title",
+      "label": "Heading",
+      "default": "Useful technology, selected with care"
+    },
+    {
+      "type": "text",
+      "id": "benefit_1_title",
+      "label": "Benefit 1 heading",
+      "default": "Curated smart essentials"
+    },
+    {
+      "type": "richtext",
+      "id": "benefit_1_text",
+      "label": "Benefit 1 text",
+      "default": "<p>Every product is chosen for practical home use, simple setup, and everyday reliability.</p>"
+    },
+    {
+      "type": "text",
+      "id": "benefit_2_title",
+      "label": "Benefit 2 heading",
+      "default": "Fast, reliable delivery"
+    },
+    {
+      "type": "richtext",
+      "id": "benefit_2_text",
+      "label": "Benefit 2 text",
+      "default": "<p>Get your home upgrades moving quickly with clear shipping and dependable support.</p>"
+    },
+    {
+      "type": "text",
+      "id": "benefit_3_title",
+      "label": "Benefit 3 heading",
+      "default": "Secure checkout"
+    },
+    {
+      "type": "richtext",
+      "id": "benefit_3_text",
+      "label": "Benefit 3 text",
+      "default": "<p>Shop confidently with Shopify checkout and trusted payment options.</p>"
+    },
+    {
+      "type": "text",
+      "id": "benefit_4_title",
+      "label": "Benefit 4 heading",
+      "default": "Helpful support"
+    },
+    {
+      "type": "richtext",
+      "id": "benefit_4_text",
+      "label": "Benefit 4 text",
+      "default": "<p>Questions before or after your order are handled by a team focused on simple answers.</p>"
+    },
+    {
+      "type": "header",
+      "content": "Testimonials"
+    },
+    {
+      "type": "text",
+      "id": "testimonials_kicker",
+      "label": "Kicker",
+      "default": "Customer stories"
+    },
+    {
+      "type": "text",
+      "id": "testimonials_title",
+      "label": "Heading",
+      "default": "Homes made easier with SmartNest"
+    },
+    {
+      "type": "richtext",
+      "id": "testimonial_1_text",
+      "label": "Testimonial 1 text",
+      "default": "<p>The products were easy to install and made our living room feel instantly more organized.</p>"
+    },
+    {
+      "type": "text",
+      "id": "testimonial_1_author",
+      "label": "Testimonial 1 author",
+      "default": "Maya R."
+    },
+    {
+      "type": "richtext",
+      "id": "testimonial_2_text",
+      "label": "Testimonial 2 text",
+      "default": "<p>SmartNest helped us choose practical upgrades without getting lost in specs.</p>"
+    },
+    {
+      "type": "text",
+      "id": "testimonial_2_author",
+      "label": "Testimonial 2 author",
+      "default": "Daniel P."
+    },
+    {
+      "type": "richtext",
+      "id": "testimonial_3_text",
+      "label": "Testimonial 3 text",
+      "default": "<p>Great quality, clear communication, and the delivery arrived exactly when promised.</p>"
+    },
+    {
+      "type": "text",
+      "id": "testimonial_3_author",
+      "label": "Testimonial 3 author",
+      "default": "Nina S."
+    },
+    {
+      "type": "header",
+      "content": "Newsletter"
+    },
+    {
+      "type": "text",
+      "id": "newsletter_kicker",
+      "label": "Kicker",
+      "default": "SmartNest notes"
+    },
+    {
+      "type": "text",
+      "id": "newsletter_title",
+      "label": "Heading",
+      "default": "Get smarter home ideas in your inbox"
+    },
+    {
+      "type": "richtext",
+      "id": "newsletter_text",
+      "label": "Text",
+      "default": "<p>Subscribe for new arrivals, practical setup tips, and occasional offers.</p>"
+    },
+    {
+      "type": "text",
+      "id": "newsletter_placeholder",
+      "label": "Email placeholder",
+      "default": "Email address"
+    },
+    {
+      "type": "text",
+      "id": "newsletter_button_label",
+      "label": "Button label",
+      "default": "Subscribe"
+    }
+  ],
   "presets": [
     {
-      "name": "Hello World Template",
-      "category": "Demo"
+      "name": "SmartNest homepage"
     }
   ]
 }

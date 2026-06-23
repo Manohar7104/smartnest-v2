@@ -1,61 +1,180 @@
-{% comment %}
-  This section is used in the list-collections template to render a list of
-  collections.
+{% render 'breadcrumbs' %}
 
-  https://shopify.dev/docs/storefronts/themes/architecture/templates/collection
-{% endcomment %}
-
-<h1>{{ 'collections.title' | t }}</h1>
-
-<div
-  class="collections {{ section.settings.grid_item_width }}"
+<section
+  class="collections-page page-transition-surface {{ section.settings.grid_item_width }}"
   style="--grid-gap: {{ section.settings.grid_gap }}px"
 >
-  {% for collection in collections %}
-    <a class="collection-card" href="{{ collection.url }}">
-      {% if collection.featured_image %}
-        {% render 'image',
-          class: 'collection-card__image',
-          image: collection.featured_image,
-          width: 600,
-          height: 600,
-          crop: 'center'
-        %}
-      {% endif %}
+  <div class="collections-page__header">
+    <p class="collections-page__eyebrow">Shop by category</p>
+    <h1>{{ 'collections.title' | t }}</h1>
+  </div>
 
-      <div class="collection-card__content">
-        <p>{{ collection.title }}</p>
+  <div class="collections-grid">
+    {% for collection in collections %}
+      <a class="collection-card" href="{{ collection.url }}" aria-label="{{ collection.title | escape }}">
+        <span class="collection-card__image">
+          {% if collection.featured_image %}
+            {{
+              collection.featured_image
+              | image_url: width: 800
+              | image_tag:
+                widths: '320, 520, 800',
+                sizes: '(min-width: 990px) 33vw, (min-width: 640px) 50vw, 100vw',
+                loading: 'lazy',
+                alt: collection.featured_image.alt | default: collection.title
+            }}
+          {% elsif collection.products.first.featured_image %}
+            {{
+              collection.products.first.featured_image
+              | image_url: width: 800
+              | image_tag:
+                widths: '320, 520, 800',
+                sizes: '(min-width: 990px) 33vw, (min-width: 640px) 50vw, 100vw',
+                loading: 'lazy',
+                alt: collection.title
+            }}
+          {% else %}
+            {{ 'collection-1' | placeholder_svg_tag: 'collection-card__placeholder' }}
+          {% endif %}
+        </span>
 
-        {% if collection.description %}
-          <p>{{ collection.description | strip_html | truncatewords: 15 }}</p>
-        {% endif %}
-      </div>
-    </a>
-  {% endfor %}
-</div>
+        <span class="collection-card__content">
+          <span class="collection-card__title">{{ collection.title | escape }}</span>
+          {% if collection.description != blank %}
+            <span class="collection-card__description">
+              {{ collection.description | strip_html | truncatewords: 18 }}
+            </span>
+          {% endif %}
+          <span class="collection-card__meta">
+            {{ collection.products_count }} product{% unless collection.products_count == 1 %}s{% endunless %}
+          </span>
+        </span>
+      </a>
+    {% endfor %}
+  </div>
+</section>
 
 {% stylesheet %}
-  .collections {
+  .collections-page {
+    --collections-accent: #14594b;
+    width: min(1180px, calc(100% - 32px));
+    margin-inline: auto;
+    padding-block: clamp(32px, 6vw, 72px);
+    color: #16231f;
+  }
+
+  .page-transition-surface {
+    will-change: opacity, transform;
+  }
+
+  .collections-page__header {
+    max-width: 760px;
+    margin-bottom: 28px;
+  }
+
+  .collections-page__eyebrow {
+    margin: 0 0 8px;
+    color: var(--collections-accent);
+    font-size: 0.78rem;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .collections-page h1 {
+    margin: 0;
+    font-size: clamp(2.2rem, 6vw, 4.2rem);
+    line-height: 1;
+  }
+
+  .collections-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(min(var(--collection-card-size), 100%), 1fr));
     gap: var(--grid-gap);
   }
+
   .collections--compact {
-    --collection-card-size: 160px;
+    --collection-card-size: 220px;
   }
+
   .collections--full {
-    --collection-card-size: 280px;
+    --collection-card-size: 320px;
   }
+
   .collection-card {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    border: 1px solid rgba(20, 89, 75, 0.12);
+    border-radius: 8px;
+    overflow: hidden;
+    background: #ffffff;
+    color: inherit;
+    text-decoration: none;
+    transition: transform 160ms ease, box-shadow 160ms ease;
+  }
+
+  .collection-card:hover,
+  .collection-card:focus-visible {
+    transform: translateY(-3px);
+    box-shadow: 0 16px 36px rgba(20, 89, 75, 0.12);
+    outline: none;
+  }
+
+  .collection-card__image {
+    display: block;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    background: #eef4f0;
+  }
+
+  .collection-card__image img,
+  .collection-card__placeholder {
     width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 220ms ease;
+  }
+
+  .collection-card:hover .collection-card__image img {
+    transform: scale(1.04);
+  }
+
+  .collection-card__content {
+    display: grid;
+    gap: 8px;
+    padding: 16px;
+  }
+
+  .collection-card__title {
+    font-size: 1.1rem;
+    font-weight: 900;
+    line-height: 1.25;
+  }
+
+  .collection-card__description {
+    color: rgba(22, 35, 31, 0.68);
+    font-size: 0.92rem;
+    line-height: 1.55;
+  }
+
+  .collection-card__meta {
+    color: var(--collections-accent);
+    font-size: 0.82rem;
+    font-weight: 900;
+  }
+
+  @media (max-width: 639px) {
+    .collections-page {
+      width: min(100% - 24px, 1180px);
+    }
+
+    .collections-grid {
+      grid-template-columns: 1fr;
+    }
   }
 {% endstylesheet %}
 
 {% schema %}
 {
-  "name": "t:general.collections_grid",
+  "name": "Collections grid",
   "settings": [
     {
       "type": "select",
@@ -71,13 +190,13 @@
       "type": "range",
       "id": "grid_gap",
       "label": "t:labels.grid_gap",
-      "min": 0,
+      "min": 10,
       "max": 50,
       "step": 5,
       "unit": "px",
-      "default": 10
+      "default": 20
     }
   ],
-  "presets": [{ "name": "t:general.collections_grid" }]
+  "presets": [{ "name": "Collections grid" }]
 }
 {% endschema %}

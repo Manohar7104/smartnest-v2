@@ -1,0 +1,97 @@
+{% doc %}
+  Manages recently viewed products using localStorage.
+
+  Stores up to 6 products in browser localStorage. Automatically tracks product
+  views and removes duplicates, keeping the most recent products.
+
+  @example
+  {% render 'recently-viewed-manager' %}
+{% enddoc %}
+
+{% javascript %}
+  (function() {
+    const STORAGE_KEY = 'smartnest_recently_viewed';
+    const MAX_PRODUCTS = 6;
+
+    // Get current product ID from page (if on product page)
+    function getCurrentProductId() {
+      const productJson = document.querySelector('[data-product-id]');
+      return productJson ? productJson.getAttribute('data-product-id') : null;
+    }
+
+    // Get recently viewed products from localStorage
+    function getRecentlyViewed() {
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        return stored ? JSON.parse(stored) : [];
+      } catch (e) {
+        console.warn('Error reading localStorage:', e);
+        return [];
+      }
+    }
+
+    // Save recently viewed products to localStorage
+    function saveRecentlyViewed(products) {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
+      } catch (e) {
+        console.warn('Error writing to localStorage:', e);
+      }
+    }
+
+    // Add product to recently viewed
+    function addProductView(productId, productData) {
+      if (!productId) return;
+
+      let products = getRecentlyViewed();
+
+      // Remove if already exists (to update position)
+      products = products.filter(p => p.id !== productId);
+
+      // Add to beginning (most recent)
+      products.unshift({
+        id: productId,
+        title: productData.title || '',
+        image: productData.image || '',
+        url: productData.url || '',
+        price: productData.price || '',
+        timestamp: Date.now()
+      });
+
+      // Keep only MAX_PRODUCTS
+      products = products.slice(0, MAX_PRODUCTS);
+
+      saveRecentlyViewed(products);
+
+      // Dispatch custom event for other components to listen
+      window.dispatchEvent(new CustomEvent('smartnest:recentlyViewedUpdated', {
+        detail: { products }
+      }));
+    }
+
+    // Public API
+    window.SmartNest = window.SmartNest || {};
+    window.SmartNest.RecentlyViewed = {
+      get: getRecentlyViewed,
+      add: addProductView,
+      clear: () => localStorage.removeItem(STORAGE_KEY)
+    };
+
+    // Track current page view if on product page
+    const currentProductId = getCurrentProductId();
+    if (currentProductId) {
+      const productData = {
+        title: document.querySelector('h1')?.textContent || '',
+        image: document.querySelector('[data-product-featured-image]')?.src || '',
+        url: window.location.href,
+        price: document.querySelector('[data-product-price]')?.textContent || ''
+      };
+      addProductView(currentProductId, productData);
+    }
+
+    // Debug helper
+    window.SmartNest.RecentlyViewed.debug = function() {
+      console.log('Recently Viewed Products:', getRecentlyViewed());
+    };
+  })();
+{% endjavascript %}

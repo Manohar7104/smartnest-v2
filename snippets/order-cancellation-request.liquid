@@ -1,0 +1,216 @@
+{% doc %}
+  Renders a Shopify-compatible order cancellation request form.
+
+  @param {order} order - The customer order to request cancellation for
+
+  @example
+  {% render 'order-cancellation-request', order: order %}
+{% enddoc %}
+
+{% liquid
+  assign cancellation_status = blank
+  if order.metafields.custom.cancellation_status != blank
+    assign cancellation_status = order.metafields.custom.cancellation_status.value | default: order.metafields.custom.cancellation_status
+  endif
+%}
+
+<div class="order-cancel" data-order-cancel>
+  {% if order.cancelled %}
+    <p class="order-cancel__status order-cancel__status--closed">
+      This order was cancelled on {{ order.cancelled_at | date: '%B %d, %Y' }}.
+    </p>
+  {% elsif cancellation_status != blank %}
+    <p class="order-cancel__status">
+      Cancellation request status: <strong>{{ cancellation_status | escape }}</strong>
+    </p>
+  {% else %}
+    <button type="button" class="order-cancel__button" data-cancel-open>
+      Request cancellation
+    </button>
+
+    <dialog class="order-cancel__dialog" data-cancel-dialog aria-labelledby="CancelOrderTitle-{{ order.id }}">
+      <div class="order-cancel__dialog-inner">
+        <div class="order-cancel__header">
+          <h2 id="CancelOrderTitle-{{ order.id }}">Request order cancellation</h2>
+          <button type="button" class="order-cancel__close" data-cancel-close aria-label="Close cancellation form">
+            &times;
+          </button>
+        </div>
+
+        <p>
+          Submit a request for {{ order.name }}. SmartNest support will review the order status before confirming cancellation.
+        </p>
+
+        {% form 'contact', class: 'order-cancel__form' %}
+          {% if form.posted_successfully? %}
+            <div class="order-cancel__notice order-cancel__notice--success" role="status">
+              Your cancellation request has been sent to SmartNest support.
+            </div>
+          {% endif %}
+
+          {% if form.errors %}
+            <div class="order-cancel__notice order-cancel__notice--error" role="alert">
+              {{ form.errors | default_errors }}
+            </div>
+          {% endif %}
+
+          <input type="hidden" name="contact[tags]" value="order-cancellation-request,{{ order.name | escape }}">
+          <input type="hidden" name="contact[email]" value="{{ customer.email | escape }}">
+          <input type="hidden" name="contact[name]" value="{{ customer.name | default: customer.email | escape }}">
+
+          <div class="order-cancel__field">
+            <label for="CancellationReason-{{ order.id }}">Reason for cancellation</label>
+            <select id="CancellationReason-{{ order.id }}" name="contact[cancellation_reason]" required>
+              <option value="">Select a reason</option>
+              <option value="Ordered by mistake">Ordered by mistake</option>
+              <option value="Found a better alternative">Found a better alternative</option>
+              <option value="Delivery taking too long">Delivery taking too long</option>
+              <option value="Payment issue">Payment issue</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <div class="order-cancel__field">
+            <label for="CancellationMessage-{{ order.id }}">Additional details</label>
+            <textarea
+              id="CancellationMessage-{{ order.id }}"
+              name="contact[body]"
+              rows="5"
+              required
+            >Cancellation request for {{ order.name }} placed on {{ order.created_at | date: '%B %d, %Y' }}.</textarea>
+          </div>
+
+          <button type="submit" class="order-cancel__button">
+            Send cancellation request
+          </button>
+        {% endform %}
+      </div>
+    </dialog>
+  {% endif %}
+</div>
+
+{% stylesheet %}
+  .order-cancel {
+    display: grid;
+    gap: 14px;
+  }
+
+  .order-cancel__button {
+    display: inline-flex;
+    min-height: 44px;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 8px;
+    background: #14594b;
+    color: #ffffff;
+    cursor: pointer;
+    padding: 10px 16px;
+    font-weight: 900;
+  }
+
+  .order-cancel__status,
+  .order-cancel__notice {
+    border-radius: 8px;
+    background: #eef4f0;
+    color: #14594b;
+    padding: 12px 14px;
+    line-height: 1.5;
+  }
+
+  .order-cancel__status--closed,
+  .order-cancel__notice--error {
+    background: #ffe4e6;
+    color: #9f1239;
+  }
+
+  .order-cancel__notice--success {
+    background: #dcfce7;
+    color: #166534;
+  }
+
+  .order-cancel__dialog {
+    width: min(560px, calc(100% - 24px));
+    border: 0;
+    border-radius: 8px;
+    padding: 0;
+    box-shadow: 0 24px 80px rgba(22, 35, 31, 0.24);
+  }
+
+  .order-cancel__dialog::backdrop {
+    background: rgba(22, 35, 31, 0.5);
+  }
+
+  .order-cancel__dialog-inner {
+    display: grid;
+    gap: 18px;
+    padding: clamp(20px, 4vw, 28px);
+  }
+
+  .order-cancel__header {
+    display: flex;
+    justify-content: space-between;
+    gap: 18px;
+    align-items: start;
+  }
+
+  .order-cancel__header h2 {
+    margin: 0;
+  }
+
+  .order-cancel__close {
+    border: 0;
+    background: transparent;
+    color: #16231f;
+    cursor: pointer;
+    font-size: 1.8rem;
+    line-height: 1;
+  }
+
+  .order-cancel__form,
+  .order-cancel__field {
+    display: grid;
+    gap: 10px;
+  }
+
+  .order-cancel__field label {
+    font-weight: 900;
+  }
+
+  .order-cancel__field select,
+  .order-cancel__field textarea {
+    width: 100%;
+    border: 1px solid rgba(20, 89, 75, 0.2);
+    border-radius: 8px;
+    padding: 12px 14px;
+    font: inherit;
+  }
+{% endstylesheet %}
+
+{% javascript %}
+  (() => {
+    document.querySelectorAll('[data-order-cancel]').forEach((root) => {
+      const dialog = root.querySelector('[data-cancel-dialog]');
+      const openButton = root.querySelector('[data-cancel-open]');
+      const closeButton = root.querySelector('[data-cancel-close]');
+
+      if (!dialog || !openButton) return;
+
+      openButton.addEventListener('click', () => {
+        if (typeof dialog.showModal === 'function') {
+          dialog.showModal();
+        }
+      });
+
+      closeButton?.addEventListener('click', () => {
+        dialog.close();
+      });
+
+      dialog.addEventListener('click', (event) => {
+        if (event.target === dialog) {
+          dialog.close();
+        }
+      });
+    });
+  })();
+{% endjavascript %}

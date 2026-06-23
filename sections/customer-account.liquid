@@ -1,0 +1,269 @@
+<section class="customer-account page-transition-surface" aria-labelledby="CustomerAccountTitle-{{ section.id }}">
+  <div class="customer-account__container">
+    {% render 'account-nav', active: 'account' %}
+
+    <div class="customer-account__header">
+      <div>
+        <p class="customer-account__eyebrow">SmartNest account</p>
+        <h1 id="CustomerAccountTitle-{{ section.id }}">Welcome, {{ customer.first_name | default: customer.email | escape }}</h1>
+      </div>
+      <a href="{{ routes.account_logout_url }}" class="customer-account__button customer-account__button--secondary">Log out</a>
+    </div>
+
+    <div class="customer-account__grid">
+      <div class="customer-account__panel">
+        <h2>Profile information</h2>
+        <dl class="customer-account__details">
+          <div>
+            <dt>Name</dt>
+            <dd>{{ customer.name | default: 'Not provided' | escape }}</dd>
+          </div>
+          <div>
+            <dt>Email</dt>
+            <dd>{{ customer.email | escape }}</dd>
+          </div>
+          <div>
+            <dt>Default address</dt>
+            <dd>
+              {% if customer.default_address %}
+                {{ customer.default_address.address1 | escape }}{% if customer.default_address.city != blank %}, {{ customer.default_address.city | escape }}{% endif %}
+              {% else %}
+                No default address saved.
+              {% endif %}
+            </dd>
+          </div>
+        </dl>
+        <a href="{{ routes.account_addresses_url }}" class="customer-account__button">Manage addresses</a>
+      </div>
+
+      <div class="customer-account__panel">
+        <h2>Account settings</h2>
+        <p>Use your account to review orders, manage saved addresses, and speed up future checkout.</p>
+        <a href="{{ routes.account_addresses_url }}" class="customer-account__text-link">Update saved addresses</a>
+      </div>
+    </div>
+
+    <div class="customer-account__panel customer-account__panel--wide">
+      <div class="customer-account__section-heading">
+        <h2>Order history</h2>
+        <p>{{ customer.orders_count }} order{% unless customer.orders_count == 1 %}s{% endunless %}</p>
+      </div>
+
+      {% paginate customer.orders by 20 %}
+        {% if customer.orders.size > 0 %}
+          <div class="customer-account__table-wrap">
+            <table class="customer-account__table">
+              <caption class="customer-account__visually-hidden">Customer order history</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Order</th>
+                  <th scope="col">Date</th>
+                  <th scope="col">Payment</th>
+                  <th scope="col">Fulfillment</th>
+                  <th scope="col">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for order in customer.orders %}
+                  <tr>
+                    <td><a href="{{ order.customer_url }}">{{ order.name }}</a></td>
+                    <td>{{ order.created_at | date: '%B %d, %Y' }}</td>
+                    <td>{{ order.financial_status_label }}</td>
+                    <td>{{ order.fulfillment_status_label }}</td>
+                    <td>{{ order.total_price | money }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+
+          {% if paginate.pages > 1 %}
+            <div class="customer-account__pagination">
+              {{ paginate | default_pagination }}
+            </div>
+          {% endif %}
+        {% else %}
+          <div class="customer-account__empty">
+            <h3>No orders yet</h3>
+            <p>Your SmartNest orders will appear here after checkout.</p>
+            <a href="{{ routes.all_products_collection_url }}" class="customer-account__button">Start shopping</a>
+          </div>
+        {% endif %}
+      {% endpaginate %}
+    </div>
+  </div>
+</section>
+
+{% stylesheet %}
+  .customer-account {
+    --account-accent: #14594b;
+    color: #16231f;
+    padding-block: clamp(32px, 6vw, 76px);
+  }
+
+  .page-transition-surface {
+    will-change: opacity, transform;
+  }
+
+  .customer-account__container {
+    width: min(1180px, calc(100% - 32px));
+    margin-inline: auto;
+  }
+
+  .customer-account__header,
+  .customer-account__section-heading {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+  }
+
+  .customer-account__eyebrow {
+    margin: 0 0 8px;
+    color: var(--account-accent);
+    font-size: 0.78rem;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .customer-account h1 {
+    margin: 0;
+    font-size: clamp(2rem, 5vw, 3.4rem);
+    line-height: 1;
+  }
+
+  .customer-account__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 0.72fr);
+    gap: 18px;
+    margin-bottom: 18px;
+  }
+
+  .customer-account__panel {
+    display: grid;
+    gap: 16px;
+    border: 1px solid rgba(20, 89, 75, 0.14);
+    border-radius: 8px;
+    background: #ffffff;
+    padding: clamp(18px, 4vw, 28px);
+    box-shadow: 0 14px 34px rgba(20, 89, 75, 0.08);
+  }
+
+  .customer-account__panel--wide {
+    margin-top: 18px;
+  }
+
+  .customer-account__panel h2,
+  .customer-account__empty h3 {
+    margin: 0;
+  }
+
+  .customer-account__details {
+    display: grid;
+    gap: 12px;
+    margin: 0;
+  }
+
+  .customer-account__details div {
+    display: grid;
+    gap: 4px;
+  }
+
+  .customer-account__details dt {
+    color: rgba(22, 35, 31, 0.62);
+    font-weight: 900;
+  }
+
+  .customer-account__details dd {
+    margin: 0;
+  }
+
+  .customer-account__button {
+    display: inline-flex;
+    width: fit-content;
+    min-height: 44px;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 8px;
+    background: var(--account-accent);
+    color: #ffffff;
+    padding: 10px 16px;
+    font-weight: 900;
+    text-decoration: none;
+  }
+
+  .customer-account__button--secondary {
+    border: 1px solid rgba(20, 89, 75, 0.2);
+    background: #ffffff;
+    color: var(--account-accent);
+  }
+
+  .customer-account__text-link,
+  .customer-account__table a {
+    color: var(--account-accent);
+    font-weight: 900;
+  }
+
+  .customer-account__table-wrap {
+    overflow-x: auto;
+  }
+
+  .customer-account__table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 680px;
+  }
+
+  .customer-account__table th,
+  .customer-account__table td {
+    border-bottom: 1px solid rgba(20, 89, 75, 0.12);
+    padding: 14px 10px;
+    text-align: left;
+  }
+
+  .customer-account__table th {
+    color: rgba(22, 35, 31, 0.62);
+    font-size: 0.84rem;
+    text-transform: uppercase;
+  }
+
+  .customer-account__visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+
+  .customer-account__empty {
+    display: grid;
+    gap: 12px;
+    justify-items: start;
+    border: 1px dashed rgba(20, 89, 75, 0.22);
+    border-radius: 8px;
+    padding: 24px;
+  }
+
+  @media (max-width: 839px) {
+    .customer-account__grid {
+      grid-template-columns: 1fr;
+    }
+
+    .customer-account__container {
+      width: min(100% - 24px, 1180px);
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Customer account",
+  "settings": [],
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  }
+}
+{% endschema %}

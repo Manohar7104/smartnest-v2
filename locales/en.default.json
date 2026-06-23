@@ -48,5 +48,28 @@
     "submit": "Search",
     "no_results_html": "No results found for {{ terms }}",
     "results_for_html": "{{ count }} results found for {{ terms }}"
+  },
+  "breadcrumbs": {
+    "home": "Home"
+  },
+  "product": {
+    "add_to_cart": "Add to cart",
+    "available": "In stock",
+    "unavailable": "Sold out",
+    "quantity": "Quantity",
+    "select_variant": "Select variant",
+    "select_variant_message": "Please select a variant",
+    "variant_unavailable": "This variant is not available",
+    "sold_out": "Sold out",
+    "sku": "SKU"
+  },
+  "recently_viewed": {
+    "title": "Recently Viewed",
+    "loading": "Loading recently viewed products...",
+    "empty": "You haven't viewed any products yet"
+  },
+  "general": {
+    "product": "Product",
+    "recently_viewed": "Recently Viewed Products"
   }
 }

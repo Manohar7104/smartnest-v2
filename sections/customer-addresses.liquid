@@ -1,0 +1,405 @@
+<section class="customer-addresses page-transition-surface" aria-labelledby="CustomerAddressesTitle-{{ section.id }}">
+  <div class="customer-addresses__container">
+    {% render 'account-nav', active: 'addresses' %}
+
+    <div class="customer-addresses__header">
+      <div>
+        <p class="customer-addresses__eyebrow">SmartNest account</p>
+        <h1 id="CustomerAddressesTitle-{{ section.id }}">Saved addresses</h1>
+      </div>
+      <button type="button" class="customer-addresses__button" data-address-new-toggle>
+        Add address
+      </button>
+    </div>
+
+    <div class="customer-addresses__form-panel" data-address-new-form hidden>
+      <h2>Add a new address</h2>
+      {% form 'customer_address', customer.new_address, class: 'customer-addresses__form' %}
+        <div class="customer-addresses__split">
+          <div class="customer-addresses__field">
+            <label for="AddressFirstNameNew">First name</label>
+            <input id="AddressFirstNameNew" type="text" name="address[first_name]" autocomplete="given-name">
+          </div>
+          <div class="customer-addresses__field">
+            <label for="AddressLastNameNew">Last name</label>
+            <input id="AddressLastNameNew" type="text" name="address[last_name]" autocomplete="family-name">
+          </div>
+        </div>
+
+        <div class="customer-addresses__field">
+          <label for="AddressCompanyNew">Company</label>
+          <input id="AddressCompanyNew" type="text" name="address[company]" autocomplete="organization">
+        </div>
+
+        <div class="customer-addresses__field">
+          <label for="AddressAddress1New">Address line 1</label>
+          <input id="AddressAddress1New" type="text" name="address[address1]" autocomplete="address-line1" required>
+        </div>
+
+        <div class="customer-addresses__field">
+          <label for="AddressAddress2New">Address line 2</label>
+          <input id="AddressAddress2New" type="text" name="address[address2]" autocomplete="address-line2">
+        </div>
+
+        <div class="customer-addresses__split">
+          <div class="customer-addresses__field">
+            <label for="AddressCityNew">City</label>
+            <input id="AddressCityNew" type="text" name="address[city]" autocomplete="address-level2" required>
+          </div>
+          <div class="customer-addresses__field">
+            <label for="AddressZipNew">Postal code</label>
+            <input id="AddressZipNew" type="text" name="address[zip]" autocomplete="postal-code">
+          </div>
+        </div>
+
+        <div class="customer-addresses__split">
+          <div class="customer-addresses__field">
+            <label for="AddressCountryNew">Country/region</label>
+            <select id="AddressCountryNew" name="address[country]" data-default="{{ form.country }}" autocomplete="country">
+              {{ all_country_option_tags }}
+            </select>
+          </div>
+          <div class="customer-addresses__field">
+            <label for="AddressProvinceNew">Province/state</label>
+            <input id="AddressProvinceNew" type="text" name="address[province]" autocomplete="address-level1">
+          </div>
+        </div>
+
+        <div class="customer-addresses__field">
+          <label for="AddressPhoneNew">Phone</label>
+          <input id="AddressPhoneNew" type="tel" name="address[phone]" autocomplete="tel">
+        </div>
+
+        <label class="customer-addresses__checkbox">
+          {{ form.set_as_default_checkbox }}
+          <span>Set as default address</span>
+        </label>
+
+        <div class="customer-addresses__actions">
+          <button type="submit" class="customer-addresses__button">Save address</button>
+          <button type="button" class="customer-addresses__button customer-addresses__button--secondary" data-address-new-toggle>
+            Cancel
+          </button>
+        </div>
+      {% endform %}
+    </div>
+
+    {% paginate customer.addresses by 12 %}
+      {% if customer.addresses.size > 0 %}
+        <div class="customer-addresses__grid">
+          {% for address in customer.addresses %}
+            <article class="customer-addresses__card">
+              {% if address == customer.default_address %}
+                <p class="customer-addresses__badge">Default</p>
+              {% endif %}
+
+              <div class="customer-addresses__formatted">
+                {{ address | format_address }}
+              </div>
+
+              <div class="customer-addresses__actions">
+                <button type="button" class="customer-addresses__button customer-addresses__button--secondary" data-address-edit-toggle="{{ address.id }}">
+                  Edit
+                </button>
+                <form method="post" action="{{ routes.account_addresses_url }}/{{ address.id }}" data-confirm-message="Delete this address?">
+                  <input type="hidden" name="_method" value="delete">
+                  <button type="submit" class="customer-addresses__button customer-addresses__button--danger">
+                    Delete
+                  </button>
+                </form>
+              </div>
+
+              <div class="customer-addresses__form-panel" data-address-edit-form="{{ address.id }}" hidden>
+                <h2>Edit address</h2>
+                {% form 'customer_address', address, class: 'customer-addresses__form' %}
+                  <div class="customer-addresses__split">
+                    <div class="customer-addresses__field">
+                      <label for="AddressFirstName-{{ address.id }}">First name</label>
+                      <input id="AddressFirstName-{{ address.id }}" type="text" name="address[first_name]" value="{{ address.first_name | escape }}" autocomplete="given-name">
+                    </div>
+                    <div class="customer-addresses__field">
+                      <label for="AddressLastName-{{ address.id }}">Last name</label>
+                      <input id="AddressLastName-{{ address.id }}" type="text" name="address[last_name]" value="{{ address.last_name | escape }}" autocomplete="family-name">
+                    </div>
+                  </div>
+
+                  <div class="customer-addresses__field">
+                    <label for="AddressCompany-{{ address.id }}">Company</label>
+                    <input id="AddressCompany-{{ address.id }}" type="text" name="address[company]" value="{{ address.company | escape }}" autocomplete="organization">
+                  </div>
+
+                  <div class="customer-addresses__field">
+                    <label for="AddressAddress1-{{ address.id }}">Address line 1</label>
+                    <input id="AddressAddress1-{{ address.id }}" type="text" name="address[address1]" value="{{ address.address1 | escape }}" autocomplete="address-line1" required>
+                  </div>
+
+                  <div class="customer-addresses__field">
+                    <label for="AddressAddress2-{{ address.id }}">Address line 2</label>
+                    <input id="AddressAddress2-{{ address.id }}" type="text" name="address[address2]" value="{{ address.address2 | escape }}" autocomplete="address-line2">
+                  </div>
+
+                  <div class="customer-addresses__split">
+                    <div class="customer-addresses__field">
+                      <label for="AddressCity-{{ address.id }}">City</label>
+                      <input id="AddressCity-{{ address.id }}" type="text" name="address[city]" value="{{ address.city | escape }}" autocomplete="address-level2" required>
+                    </div>
+                    <div class="customer-addresses__field">
+                      <label for="AddressZip-{{ address.id }}">Postal code</label>
+                      <input id="AddressZip-{{ address.id }}" type="text" name="address[zip]" value="{{ address.zip | escape }}" autocomplete="postal-code">
+                    </div>
+                  </div>
+
+                  <div class="customer-addresses__split">
+                    <div class="customer-addresses__field">
+                      <label for="AddressCountry-{{ address.id }}">Country/region</label>
+                      <select id="AddressCountry-{{ address.id }}" name="address[country]" data-default="{{ address.country }}" autocomplete="country">
+                        {{ all_country_option_tags }}
+                      </select>
+                    </div>
+                    <div class="customer-addresses__field">
+                      <label for="AddressProvince-{{ address.id }}">Province/state</label>
+                      <input id="AddressProvince-{{ address.id }}" type="text" name="address[province]" value="{{ address.province | escape }}" autocomplete="address-level1">
+                    </div>
+                  </div>
+
+                  <div class="customer-addresses__field">
+                    <label for="AddressPhone-{{ address.id }}">Phone</label>
+                    <input id="AddressPhone-{{ address.id }}" type="tel" name="address[phone]" value="{{ address.phone | escape }}" autocomplete="tel">
+                  </div>
+
+                  <label class="customer-addresses__checkbox">
+                    {{ form.set_as_default_checkbox }}
+                    <span>Set as default address</span>
+                  </label>
+
+                  <div class="customer-addresses__actions">
+                    <button type="submit" class="customer-addresses__button">Update address</button>
+                    <button type="button" class="customer-addresses__button customer-addresses__button--secondary" data-address-edit-toggle="{{ address.id }}">
+                      Cancel
+                    </button>
+                  </div>
+                {% endform %}
+              </div>
+            </article>
+          {% endfor %}
+        </div>
+
+        {% if paginate.pages > 1 %}
+          <div class="customer-addresses__pagination">
+            {{ paginate | default_pagination }}
+          </div>
+        {% endif %}
+      {% else %}
+        <div class="customer-addresses__empty">
+          <h2>No saved addresses</h2>
+          <p>Add an address to make checkout faster on your next SmartNest order.</p>
+        </div>
+      {% endif %}
+    {% endpaginate %}
+  </div>
+</section>
+
+{% stylesheet %}
+  .customer-addresses {
+    --account-accent: #14594b;
+    color: #16231f;
+    padding-block: clamp(32px, 6vw, 76px);
+  }
+
+  .page-transition-surface {
+    will-change: opacity, transform;
+  }
+
+  .customer-addresses__container {
+    width: min(1180px, calc(100% - 32px));
+    margin-inline: auto;
+  }
+
+  .customer-addresses__header {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+  }
+
+  .customer-addresses__eyebrow {
+    margin: 0 0 8px;
+    color: var(--account-accent);
+    font-size: 0.78rem;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .customer-addresses h1 {
+    margin: 0;
+    font-size: clamp(2rem, 5vw, 3.4rem);
+    line-height: 1;
+  }
+
+  .customer-addresses__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+  }
+
+  .customer-addresses__card,
+  .customer-addresses__form-panel,
+  .customer-addresses__empty {
+    display: grid;
+    gap: 16px;
+    border: 1px solid rgba(20, 89, 75, 0.14);
+    border-radius: 8px;
+    background: #ffffff;
+    padding: clamp(18px, 4vw, 26px);
+    box-shadow: 0 14px 34px rgba(20, 89, 75, 0.08);
+  }
+
+  .customer-addresses__form-panel {
+    margin-bottom: 18px;
+  }
+
+  .customer-addresses__form-panel[hidden] {
+    display: none;
+  }
+
+  .customer-addresses__badge {
+    width: fit-content;
+    border-radius: 999px;
+    background: #dcfce7;
+    color: #166534;
+    padding: 6px 10px;
+    font-size: 0.78rem;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .customer-addresses__formatted {
+    color: rgba(22, 35, 31, 0.76);
+    line-height: 1.6;
+  }
+
+  .customer-addresses__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .customer-addresses__button {
+    display: inline-flex;
+    min-height: 44px;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 8px;
+    background: var(--account-accent);
+    color: #ffffff;
+    cursor: pointer;
+    padding: 10px 16px;
+    font-weight: 900;
+    text-decoration: none;
+  }
+
+  .customer-addresses__button--secondary {
+    border: 1px solid rgba(20, 89, 75, 0.2);
+    background: #ffffff;
+    color: var(--account-accent);
+  }
+
+  .customer-addresses__button--danger {
+    background: #9f1239;
+  }
+
+  .customer-addresses__form,
+  .customer-addresses__field {
+    display: grid;
+    gap: 10px;
+  }
+
+  .customer-addresses__split {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .customer-addresses__field label,
+  .customer-addresses__checkbox {
+    font-weight: 900;
+  }
+
+  .customer-addresses__field input,
+  .customer-addresses__field select {
+    width: 100%;
+    min-height: 46px;
+    border: 1px solid rgba(20, 89, 75, 0.2);
+    border-radius: 8px;
+    padding: 10px 12px;
+    background: #ffffff;
+    color: inherit;
+  }
+
+  .customer-addresses__checkbox {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+
+  @media (max-width: 799px) {
+    .customer-addresses__container {
+      width: min(100% - 24px, 1180px);
+    }
+
+    .customer-addresses__grid,
+    .customer-addresses__split {
+      grid-template-columns: 1fr;
+    }
+  }
+{% endstylesheet %}
+
+{% javascript %}
+  (() => {
+    document.querySelectorAll('[data-address-new-toggle]').forEach((button) => {
+      button.addEventListener('click', () => {
+        const form = document.querySelector('[data-address-new-form]');
+        if (form) {
+          form.hidden = !form.hidden;
+        }
+      });
+    });
+
+    document.querySelectorAll('[data-address-edit-toggle]').forEach((button) => {
+      button.addEventListener('click', () => {
+        const form = document.querySelector(`[data-address-edit-form="${button.dataset.addressEditToggle}"]`);
+        if (form) {
+          form.hidden = !form.hidden;
+        }
+      });
+    });
+
+    document.querySelectorAll('[data-confirm-message]').forEach((form) => {
+      form.addEventListener('submit', (event) => {
+        if (!window.confirm(form.dataset.confirmMessage)) {
+          event.preventDefault();
+        }
+      });
+    });
+
+    document.querySelectorAll('select[name="address[country]"]').forEach((select) => {
+      if (select.dataset.default) {
+        select.value = select.dataset.default;
+      }
+    });
+  })();
+{% endjavascript %}
+
+{% schema %}
+{
+  "name": "Customer addresses",
+  "settings": [],
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  }
+}
+{% endschema %}

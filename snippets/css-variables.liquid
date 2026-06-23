@@ -6,13 +6,66 @@
   {{ settings.type_primary_font | font_modify: 'style', 'italic' | font_face: font_display: 'swap' }}
 
   :root {
+    /* Typography */
     --font-primary--family: {{ settings.type_primary_font.family }}, {{ settings.type_primary_font.fallback_families }};
     --font-primary--style: {{ settings.type_primary_font.style }};
     --font-primary--weight: {{ settings.type_primary_font.weight }};
+
+    /* Font Sizes */
+    --font-size-xs: 0.75rem;
+    --font-size-sm: 0.875rem;
+    --font-size-md: 1rem;
+    --font-size-lg: 1.25rem;
+    --font-size-xl: 1.5rem;
+    --font-size-2xl: 2rem;
+
+    /* Spacing */
+    --space-xs: 0.25rem;
+    --space-sm: 0.5rem;
+    --space-md: 1rem;
+    --space-lg: 1.5rem;
+    --space-xl: 2rem;
+    --space-2xl: 3rem;
+
+    /* Layout */
     --page-width: {{ settings.max_page_width }};
     --page-margin: {{ settings.min_page_margin }}px;
+    --max-page-width: {{ settings.max_page_width }}px;
+
+    /* Colors */
     --color-background: {{ settings.background_color }};
+    --color-background-secondary: #f8f8f8;
+    --color-background-tertiary: #e8e8e8;
     --color-foreground: {{ settings.foreground_color }};
+    --color-text: #1a1a1a;
+    --color-text-secondary: #666666;
+    --color-border: #e0e0e0;
+    --color-link: #0066cc;
+    --color-link-hover: #004a99;
+    --color-price: #d32f2f;
+    --color-focus: #0066cc;
+
+    /* Buttons */
+    --color-button-bg: #000000;
+    --color-button-text: #ffffff;
+    --color-button-bg-hover: #333333;
+
+    /* Border Radius */
+    --border-radius: {{ settings.input_corner_radius }}px;
     --style-border-radius-inputs: {{ settings.input_corner_radius }}px;
+
+    /* Transitions */
+    --transition-fast: 0.15s ease;
+    --transition-normal: 0.3s ease;
+    --transition-slow: 0.6s ease;
+  }
+
+  /* Ensure animations respect prefers-reduced-motion */
+  @media (prefers-reduced-motion: reduce) {
+    :root {
+      --transition-fast: 0s;
+      --transition-normal: 0s;
+      --transition-slow: 0s;
+    }
   }
 {% endstyle %}

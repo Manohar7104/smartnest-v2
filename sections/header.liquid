@@ -1,76 +1,476 @@
-<header>
-  <h2 class="header__title">
-    {{ shop.name | link_to: routes.root_url }}
-  </h2>
+{% comment %}
+  SmartNest Header
+  - Logo
+  - Navigation Menu
+  - Search Icon
+  - Account Icon
+  - Cart Icon with Item Count
+  - Mobile Hamburger Menu
+{% endcomment %}
 
-  <div class="header__menu">
-    {% for link in section.settings.menu.links %}
-      {{ link.title | link_to: link.url }}
-    {% endfor %}
-  </div>
+{% liquid
+  assign cancellation_request_url = '/pages/request-cancellation'
 
-  <div class="header__icons">
-    {% if shop.customer_accounts_enabled %}
-      <shopify-account menu="{{ section.settings.customer_account_menu }}">
-        {{ 'icon-account.svg' | inline_asset_content }}
-      </shopify-account>
-    {% endif %}
+  if pages['request-cancellation'] != blank
+    assign cancellation_request_url = pages['request-cancellation'].url
+  endif
+%}
 
-    <a href="{{ routes.cart_url }}">
-      {% if cart.item_count > 0 %}
-        <sup>{{ cart.item_count }}</sup>
+<header class="site-header" data-site-header>
+  <div class="header-container">
+    <!-- Logo -->
+    <div class="header-logo">
+      {% if section.settings.logo != blank %}
+        <a href="{{ routes.root_url }}" class="logo-link" aria-label="{{ shop.name }}">
+          {{
+            section.settings.logo
+            | image_url: width: 200
+            | image_tag:
+              class: 'logo-image',
+              widths: '120, 160, 200',
+              sizes: '200px',
+              loading: 'eager',
+              alt: shop.name
+          }}
+        </a>
+      {% else %}
+        <a href="{{ routes.root_url }}" class="logo-text">{{ shop.name }}</a>
+      {% endif %}
+    </div>
+
+    <!-- Desktop Navigation -->
+    <nav class="header-nav" role="navigation">
+      <ul class="nav-list">
+        {% for link in section.settings.menu.links %}
+          <li class="nav-item">
+            <a href="{{ link.url }}" class="nav-link" {% if link.active %}aria-current="page"{% endif %}>{{ link.title }}</a>
+          </li>
+        {% endfor %}
+      </ul>
+    </nav>
+
+    <!-- Header Icons -->
+    <div class="header-icons">
+      <!-- Search Icon -->
+      <a href="{{ routes.search_url }}" class="header-icon search-icon" aria-label="Search">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle>
+          <path d="m21 21-4.35-4.35"></path>
+        </svg>
+      </a>
+
+      <!-- Account Icon -->
+      {% if shop.customer_accounts_enabled %}
+        <div class="account-menu">
+          <a href="{% if customer %}{{ routes.account_url }}{% else %}{{ routes.account_login_url }}{% endif %}" class="header-icon account-icon" aria-label="Account" aria-haspopup="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+          </a>
+          <div class="account-menu__dropdown" aria-label="Account menu">
+            <a href="{{ routes.account_url }}" class="account-menu__link">My Account</a>
+            <a href="{{ cancellation_request_url }}" class="account-menu__link">Request Cancellation</a>
+          </div>
+        </div>
       {% endif %}
 
-      {{ 'icon-cart.svg' | inline_asset_content }}
-    </a>
+      <!-- Cart Icon -->
+      <a href="{{ routes.cart_url }}" class="header-icon cart-icon" aria-label="Cart">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="9" cy="21" r="1"></circle>
+          <circle cx="20" cy="21" r="1"></circle>
+          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+        </svg>
+        {% if cart.item_count > 0 %}
+          <span class="cart-count">{{ cart.item_count }}</span>
+        {% endif %}
+      </a>
+
+      <!-- Mobile Menu Toggle -->
+      <button class="mobile-menu-toggle" aria-label="Menu" aria-expanded="false" aria-controls="MobileNav-{{ section.id }}" data-mobile-menu-toggle>
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Mobile Navigation -->
+  <div id="MobileNav-{{ section.id }}" class="mobile-nav" data-mobile-nav hidden>
+    <nav role="navigation">
+      <ul class="mobile-nav-list">
+        {% for link in section.settings.menu.links %}
+          <li><a href="{{ link.url }}" class="mobile-nav-link" {% if link.active %}aria-current="page"{% endif %}>{{ link.title }}</a></li>
+        {% endfor %}
+        <li><a href="{{ cancellation_request_url }}" class="mobile-nav-link">Request Cancellation</a></li>
+      </ul>
+    </nav>
   </div>
 </header>
 
+{% javascript %}
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('[data-site-header]').forEach((header) => {
+      const toggle = header.querySelector('[data-mobile-menu-toggle]');
+      const mobileNav = header.querySelector('[data-mobile-nav]');
+
+      if (toggle && mobileNav) {
+        const setOpen = (isOpen) => {
+          toggle.setAttribute('aria-expanded', String(isOpen));
+          mobileNav.hidden = !isOpen;
+          document.documentElement.classList.toggle('mobile-nav-open', isOpen);
+        };
+
+        toggle.addEventListener('click', () => {
+          setOpen(toggle.getAttribute('aria-expanded') !== 'true');
+        });
+
+        mobileNav.querySelectorAll('a').forEach((link) => {
+          link.addEventListener('click', () => setOpen(false));
+        });
+
+        document.addEventListener('keydown', (event) => {
+          if (event.key === 'Escape') setOpen(false);
+        });
+      }
+    });
+
+    document.addEventListener('click', (event) => {
+      const link = event.target.closest('a[href]');
+      if (!link) return;
+      if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      if (link.target && link.target !== '_self') return;
+
+      const url = new URL(link.href, window.location.href);
+      if (url.origin !== window.location.origin || url.hash && url.pathname === window.location.pathname) return;
+
+      document.documentElement.classList.add('page-is-transitioning');
+    });
+  });
+{% endjavascript %}
+
 {% stylesheet %}
-  header {
-    height: 5rem;
+  .site-header {
+    background-color: #ffffff;
+    border-bottom: 1px solid #e0e0e0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 1px 0 rgba(20, 89, 75, 0.04);
+  }
+
+  html {
+    scroll-padding-top: 84px;
+  }
+
+  body {
+    opacity: 1;
+    transition: opacity 140ms ease;
+  }
+
+  html.page-is-transitioning body {
+    opacity: 0.86;
+  }
+
+  .page-transition-surface {
+    animation: smartnest-page-enter 220ms ease both;
+  }
+
+  @keyframes smartnest-page-enter {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .header-container {
+    max-width: 1200px;
+    margin: 0 auto;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    padding: 16px 24px;
+    gap: 20px;
   }
-  header a {
-    position: relative;
+
+  /* Logo */
+  .header-logo {
+    flex: 0 0 auto;
+  }
+
+  .logo-link,
+  .logo-text {
+    display: flex;
+    align-items: center;
     text-decoration: none;
-    color: var(--color-foreground);
+    color: #1a1a1a;
+    font-size: 1.25rem;
+    font-weight: 700;
+  }
+
+  .logo-image {
+    max-height: 40px;
+    width: auto;
+  }
+
+  /* Desktop Navigation */
+  .header-nav {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+  }
+
+  .nav-list {
+    display: flex;
+    gap: 30px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .nav-link {
+    color: #1a1a1a;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
+    font-size: 0.95rem;
+  }
+
+  .nav-link:hover {
+    color: #2d6a4f;
+  }
+
+  .nav-link[aria-current="page"] {
+    color: #2d6a4f;
+    font-weight: 800;
+  }
+
+  /* Header Icons */
+  .header-icons {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    flex: 0 0 auto;
+  }
+
+  .header-icon {
     display: flex;
     align-items: center;
     justify-content: center;
+    width: 40px;
+    height: 40px;
+    color: #1a1a1a;
+    cursor: pointer;
+    transition: color 0.3s ease;
+    position: relative;
+    text-decoration: none;
   }
-  header a sup {
+
+  .header-icon:hover {
+    color: #2d6a4f;
+  }
+
+  .header-icon svg {
+    stroke: currentColor;
+  }
+
+  .account-menu {
+    position: relative;
+  }
+
+  .account-menu__dropdown {
     position: absolute;
-    left: 100%;
-    overflow: hidden;
-    max-width: var(--page-margin);
+    top: calc(100% + 10px);
+    right: 0;
+    z-index: 2;
+    display: grid;
+    min-width: 190px;
+    padding: 8px;
+    border: 1px solid rgba(20, 89, 75, 0.12);
+    border-radius: 8px;
+    background: #ffffff;
+    box-shadow: 0 18px 34px rgba(20, 89, 75, 0.14);
+    opacity: 0;
+    transform: translateY(-4px);
+    pointer-events: none;
+    transition: opacity 160ms ease, transform 160ms ease;
   }
-  header svg {
-    width: 2rem;
+
+  .account-menu:focus-within .account-menu__dropdown,
+  .account-menu:hover .account-menu__dropdown {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
   }
-  header .header__menu,
-  header .header__icons {
+
+  .account-menu__link {
+    border-radius: 6px;
+    color: #1a1a1a;
+    font-size: 0.9rem;
+    font-weight: 700;
+    padding: 10px 12px;
+    text-decoration: none;
+  }
+
+  .account-menu__link:hover,
+  .account-menu__link:focus-visible {
+    background: #eef4f0;
+    color: #14594b;
+    outline: none;
+  }
+
+  .cart-count {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background-color: #2d6a4f;
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
     display: flex;
-    gap: 1rem;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+
+  /* Mobile Menu */
+  .mobile-menu-toggle {
+    display: none;
+    flex-direction: column;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    gap: 4px;
+  }
+
+  .mobile-menu-toggle span {
+    width: 100%;
+    height: 2px;
+    background-color: #1a1a1a;
+    transition: all 0.3s ease;
+  }
+
+  .mobile-menu-toggle[aria-expanded="true"] span:nth-child(1) {
+    transform: translateY(6px) rotate(45deg);
+  }
+
+  .mobile-menu-toggle[aria-expanded="true"] span:nth-child(2) {
+    opacity: 0;
+  }
+
+  .mobile-menu-toggle[aria-expanded="true"] span:nth-child(3) {
+    transform: translateY(-6px) rotate(-45deg);
+  }
+
+  .mobile-nav {
+    background-color: #fafaf9;
+    border-top: 1px solid #e0e0e0;
+    box-shadow: 0 18px 34px rgba(20, 89, 75, 0.12);
+  }
+
+  .mobile-nav[hidden] {
+    display: none;
+  }
+
+  .mobile-nav-list {
+    list-style: none;
+    margin: 0;
+    padding: 16px 24px;
+  }
+
+  .mobile-nav-list li {
+    padding: 12px 0;
+    border-bottom: 1px solid #e0e0e0;
+  }
+
+  .mobile-nav-link {
+    color: #1a1a1a;
+    text-decoration: none;
+    font-weight: 500;
+    display: block;
+  }
+
+  .mobile-nav-link:hover {
+    color: #2d6a4f;
+  }
+
+  .mobile-nav-link[aria-current="page"] {
+    color: #2d6a4f;
+    font-weight: 800;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    body,
+    .page-transition-surface,
+    .nav-link,
+    .header-icon,
+    .account-menu__dropdown,
+    .mobile-menu-toggle span {
+      animation: none;
+      transition: none;
+    }
+  }
+
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .header-nav {
+      display: none;
+    }
+
+    .mobile-menu-toggle {
+      display: flex;
+    }
+
+    .search-icon,
+    .account-menu {
+      display: none;
+    }
+
+    .header-container {
+      padding: 12px 16px;
+    }
+
+    .logo-image {
+      max-height: 32px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .header-icons {
+      gap: 12px;
+    }
+
+    .header-icon {
+      width: 36px;
+      height: 36px;
+    }
   }
 {% endstylesheet %}
 
 {% schema %}
 {
-  "name": "t:general.header",
+  "name": "Header",
   "settings": [
     {
-      "type": "link_list",
-      "id": "menu",
-      "label": "t:labels.menu"
+      "type": "image_picker",
+      "id": "logo",
+      "label": "Logo Image"
     },
     {
       "type": "link_list",
-      "id": "customer_account_menu",
-      "label": "t:labels.customer_account_menu",
-      "default": "customer-account-main-menu"
+      "id": "menu",
+      "label": "Navigation Menu",
+      "default": "main-menu"
     }
   ]
 }
