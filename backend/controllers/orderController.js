@@ -1,4 +1,26 @@
-const { cancelOrder } = require('../services/shopify');
+const { cancelOrder, getOrders } = require('../services/shopify');
+
+async function getOrdersController(req, res, next) {
+  try {
+    const orders = await getOrders();
+
+    return res.json(
+      orders.map((order) => ({
+        id: order.id,
+        name: order.name,
+        createdAt: order.createdAt,
+        financialStatus: order.displayFinancialStatus,
+        fulfillmentStatus: order.displayFulfillmentStatus,
+        total: order.currentTotalPriceSet?.shopMoney?.amount || '0.00',
+        currency:
+          order.currentTotalPriceSet?.shopMoney?.currencyCode || 'INR',
+        cancelled: Boolean(order.cancelledAt),
+      })),
+    );
+  } catch (error) {
+    return next(error);
+  }
+}
 
 async function cancelOrderController(req, res, next) {
   try {
@@ -20,5 +42,6 @@ async function cancelOrderController(req, res, next) {
 }
 
 module.exports = {
-  cancelOrderController
+  cancelOrderController,
+  getOrdersController,
 };

@@ -1,0 +1,120 @@
+<section class="custom-orders">
+  <div class="page-width">
+    <h1>My Orders</h1>
+
+    <div class="custom-order-card">
+      <h3>Test Order</h3>
+
+      <input
+        type="text"
+        id="orderId"
+        placeholder="Enter Shopify Order ID"
+      >
+
+      <button id="cancelOrderBtn">
+        Cancel Order
+      </button>
+
+      <p id="result"></p>
+    </div>
+  </div>
+</section>
+
+<style>
+.custom-orders{
+  padding:50px 20px;
+}
+
+.custom-order-card{
+  max-width:500px;
+  padding:20px;
+  border:1px solid #ddd;
+  border-radius:10px;
+}
+
+.custom-order-card input{
+  width:100%;
+  padding:12px;
+  margin:15px 0;
+}
+
+.custom-order-card button{
+  background:#14594b;
+  color:#fff;
+  border:none;
+  padding:12px 20px;
+  cursor:pointer;
+  border-radius:6px;
+}
+
+#result{
+  margin-top:15px;
+  font-weight:bold;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+  const btn = document.getElementById('cancelOrderBtn');
+
+  btn.addEventListener('click', async () => {
+
+    const orderId =
+      document.getElementById('orderId').value;
+
+    const result =
+      document.getElementById('result');
+
+    result.textContent = 'Cancelling...';
+
+    try {
+
+      const response = await fetch(
+        'https://smartnest-v2.onrender.com/api/orders/cancel',
+        {
+          method:'POST',
+          headers:{
+            'Content-Type':'application/json'
+          },
+          body:JSON.stringify({
+            orderId:orderId
+          })
+        }
+      );
+
+      const data = await response.json();
+
+      if(data.success){
+
+        result.style.color='green';
+        result.textContent =
+          '✓ Order Cancelled Successfully';
+
+      } else {
+
+        result.style.color='red';
+        result.textContent =
+          data.message;
+
+      }
+
+    } catch(error){
+
+      result.style.color='red';
+      result.textContent =
+        error.message;
+
+    }
+
+  });
+
+});
+</script>
+
+{% schema %}
+{
+  "name":"Custom Order Management",
+  "settings":[]
+}
+{% endschema %}

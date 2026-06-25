@@ -1,0 +1,413 @@
+<section class="custom-orders page-transition-surface" aria-labelledby="CustomOrdersTitle-{{ section.id }}">
+  <div class="custom-orders__container" data-custom-orders>
+    <div class="custom-orders__header">
+      <div>
+        <p class="custom-orders__eyebrow">SmartNest account</p>
+        <h1 id="CustomOrdersTitle-{{ section.id }}">My Orders</h1>
+      </div>
+    </div>
+
+    <div class="custom-orders__notice" data-orders-status role="status" aria-live="polite">
+      Loading orders...
+    </div>
+
+    <div class="custom-orders__grid" data-orders-list></div>
+  </div>
+</section>
+
+{% stylesheet %}
+  .custom-orders {
+    --orders-accent: #14594b;
+    color: #16231f;
+    padding-block: clamp(32px, 6vw, 76px);
+  }
+
+  .custom-orders__container {
+    width: min(1180px, calc(100% - 32px));
+    margin-inline: auto;
+  }
+
+  .custom-orders__header {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+  }
+
+  .custom-orders__eyebrow {
+    margin: 0 0 8px;
+    color: var(--orders-accent);
+    font-size: 0.78rem;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .custom-orders h1 {
+    margin: 0;
+    font-size: clamp(2rem, 5vw, 3.4rem);
+    line-height: 1;
+  }
+
+  .custom-orders__notice {
+    border: 1px dashed rgba(20, 89, 75, 0.22);
+    border-radius: 8px;
+    background: #ffffff;
+    color: rgba(22, 35, 31, 0.72);
+    padding: 18px;
+    font-weight: 800;
+  }
+
+  .custom-orders__notice:empty {
+    display: none;
+  }
+
+  .custom-orders__notice--error {
+    border-style: solid;
+    background: #ffe4e6;
+    color: #9f1239;
+  }
+
+  .custom-orders__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+  }
+
+  .custom-orders__notice + .custom-orders__grid:not(:empty) {
+    margin-top: 18px;
+  }
+
+  .custom-orders__card {
+    display: grid;
+    gap: 18px;
+    border: 1px solid rgba(20, 89, 75, 0.14);
+    border-radius: 8px;
+    background: #ffffff;
+    padding: clamp(18px, 4vw, 26px);
+    box-shadow: 0 14px 34px rgba(20, 89, 75, 0.08);
+  }
+
+  .custom-orders__card-header {
+    display: flex;
+    gap: 14px;
+    align-items: start;
+    justify-content: space-between;
+  }
+
+  .custom-orders__card h2 {
+    margin: 0 0 6px;
+    font-size: 1.28rem;
+    line-height: 1.2;
+  }
+
+  .custom-orders__date {
+    margin: 0;
+    color: rgba(22, 35, 31, 0.62);
+    font-weight: 800;
+  }
+
+  .custom-orders__total {
+    color: var(--orders-accent);
+    font-size: 1.22rem;
+    font-weight: 900;
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .custom-orders__statuses {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .custom-orders__status {
+    display: grid;
+    gap: 4px;
+    border-radius: 8px;
+    background: #eef4f0;
+    padding: 12px;
+  }
+
+  .custom-orders__status span {
+    color: rgba(22, 35, 31, 0.62);
+    font-size: 0.78rem;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .custom-orders__status strong {
+    color: var(--orders-accent);
+  }
+
+  .custom-orders__actions {
+    display: grid;
+    gap: 10px;
+    justify-items: start;
+  }
+
+  .custom-orders__button {
+    display: inline-flex;
+    min-height: 44px;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 8px;
+    background: #14594b;
+    color: #ffffff;
+    cursor: pointer;
+    padding: 10px 16px;
+    font: inherit;
+    font-weight: 900;
+  }
+
+  .custom-orders__button:disabled {
+    cursor: progress;
+    opacity: 0.68;
+  }
+
+  .custom-orders__message {
+    margin: 0;
+    border-radius: 8px;
+    font-weight: 900;
+    line-height: 1.5;
+  }
+
+  .custom-orders__message--success,
+  .custom-orders__message--error {
+    padding: 12px 14px;
+  }
+
+  .custom-orders__message--success {
+    background: #dcfce7;
+    color: #166534;
+  }
+
+  .custom-orders__message--error {
+    background: #ffe4e6;
+    color: #9f1239;
+  }
+
+  @media (max-width: 839px) {
+    .custom-orders__container {
+      width: min(100% - 24px, 1180px);
+    }
+
+    .custom-orders__grid,
+    .custom-orders__statuses {
+      grid-template-columns: 1fr;
+    }
+
+    .custom-orders__card-header {
+      display: grid;
+    }
+
+    .custom-orders__total {
+      text-align: left;
+    }
+  }
+{% endstylesheet %}
+
+{% javascript %}
+  (() => {
+    const API_BASE_URL = 'https://smartnest-v2.onrender.com/api/orders';
+
+    const formatStatus = (value) => {
+      if (!value) return 'Unknown';
+
+      return value
+        .toLowerCase()
+        .split('_')
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+        .join(' ');
+    };
+
+    const formatDate = (value) => {
+      if (!value) return 'Date unavailable';
+
+      return new Intl.DateTimeFormat(undefined, {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      }).format(new Date(value));
+    };
+
+    const formatMoney = (amount, currency) => {
+      const numericAmount = Number(amount || 0);
+
+      try {
+        return new Intl.NumberFormat(undefined, {
+          style: 'currency',
+          currency: currency || 'INR',
+        }).format(numericAmount);
+      } catch (error) {
+        return `${currency || 'INR'} ${numericAmount.toFixed(2)}`;
+      }
+    };
+
+    const setStatus = (statusNode, message, isError = false) => {
+      statusNode.textContent = message;
+      statusNode.classList.toggle('custom-orders__notice--error', isError);
+    };
+
+    const createTextNode = (tagName, className, text) => {
+      const node = document.createElement(tagName);
+      node.className = className;
+      node.textContent = text;
+      return node;
+    };
+
+    const createStatus = (label, value) => {
+      const item = document.createElement('div');
+      item.className = 'custom-orders__status';
+
+      const labelNode = createTextNode('span', '', label);
+      const valueNode = createTextNode('strong', '', value);
+
+      item.append(labelNode, valueNode);
+      return item;
+    };
+
+    const cancelOrder = async (order, card, reloadOrders) => {
+      const button = card.querySelector('[data-order-cancel-button]');
+      const message = card.querySelector('[data-order-message]');
+
+      if (!button || !message) return;
+
+      button.disabled = true;
+      button.textContent = 'Cancelling...';
+      message.textContent = '';
+      message.className = 'custom-orders__message';
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/cancel`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            orderId: order.id,
+          }),
+        });
+
+        const payload = await response.json();
+
+        if (!response.ok || !payload.success) {
+          throw new Error(payload.message || 'Unable to cancel this order.');
+        }
+
+        button.hidden = true;
+        message.textContent = '\u2713 Order Cancelled';
+        message.classList.add('custom-orders__message--success');
+
+        await reloadOrders();
+      } catch (error) {
+        button.disabled = false;
+        button.textContent = 'Cancel Order';
+        message.textContent = error.message || 'Unable to cancel order.';
+        message.classList.add('custom-orders__message--error');
+      }
+    };
+
+    const renderOrder = (order, reloadOrders) => {
+      const card = document.createElement('article');
+      card.className = 'custom-orders__card';
+
+      const header = document.createElement('div');
+      header.className = 'custom-orders__card-header';
+
+      const titleGroup = document.createElement('div');
+      titleGroup.append(
+        createTextNode('h2', '', `Order ${order.name || ''}`.trim()),
+        createTextNode('p', 'custom-orders__date', formatDate(order.createdAt))
+      );
+
+      header.append(
+        titleGroup,
+        createTextNode(
+          'div',
+          'custom-orders__total',
+          formatMoney(order.total, order.currency)
+        )
+      );
+
+      const statuses = document.createElement('div');
+      statuses.className = 'custom-orders__statuses';
+      statuses.append(
+        createStatus('Financial status', formatStatus(order.financialStatus)),
+        createStatus('Fulfillment status', formatStatus(order.fulfillmentStatus))
+      );
+
+      const actions = document.createElement('div');
+      actions.className = 'custom-orders__actions';
+
+      const message = createTextNode('p', 'custom-orders__message', '');
+      message.setAttribute('data-order-message', '');
+
+      if (order.cancelled) {
+        message.textContent = '\u2713 Order Cancelled';
+        message.classList.add('custom-orders__message--success');
+      } else {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'custom-orders__button';
+        button.textContent = 'Cancel Order';
+        button.setAttribute('data-order-cancel-button', '');
+        button.addEventListener('click', () => cancelOrder(order, card, reloadOrders));
+        actions.append(button);
+      }
+
+      actions.append(message);
+      card.append(header, statuses, actions);
+
+      return card;
+    };
+
+    document.querySelectorAll('[data-custom-orders]').forEach((root) => {
+      const statusNode = root.querySelector('[data-orders-status]');
+      const listNode = root.querySelector('[data-orders-list]');
+
+      if (!statusNode || !listNode) return;
+
+      const loadOrders = async () => {
+        setStatus(statusNode, 'Loading orders...');
+        listNode.replaceChildren();
+
+        try {
+          const response = await fetch(API_BASE_URL);
+          const orders = await response.json();
+
+          if (!response.ok) {
+            throw new Error(orders.message || 'Unable to load orders.');
+          }
+
+          if (!Array.isArray(orders) || orders.length === 0) {
+            setStatus(statusNode, 'No Orders Found');
+            return;
+          }
+
+          setStatus(statusNode, '');
+          listNode.replaceChildren(
+            ...orders.map((order) => renderOrder(order, loadOrders))
+          );
+        } catch (error) {
+          setStatus(
+            statusNode,
+            error.message || 'Unable to load orders.',
+            true
+          );
+        }
+      };
+
+      loadOrders();
+    });
+  })();
+{% endjavascript %}
+
+{% schema %}
+{
+  "name": "Custom Orders",
+  "settings": []
+}
+{% endschema %}

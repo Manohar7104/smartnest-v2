@@ -13,6 +13,27 @@ const ORDER_QUERY = `
   }
 `;
 
+const ORDERS_QUERY = `
+  query GetOrders {
+    orders(first: 20, sortKey: CREATED_AT, reverse: true) {
+      nodes {
+        id
+        name
+        createdAt
+        displayFinancialStatus
+        displayFulfillmentStatus
+        currentTotalPriceSet {
+          shopMoney {
+            amount
+            currencyCode
+          }
+        }
+        cancelledAt
+      }
+    }
+  }
+`;
+
 const CANCEL_ORDER_MUTATION = `
   mutation CancelOrder(
     $orderId: ID!
@@ -135,6 +156,14 @@ async function getOrderForCancellation(orderId) {
   return data.order;
 }
 
+async function getOrders() {
+  // Future Enhancement: filter these Admin API results by the authenticated
+  // customer once customer session ownership validation is added.
+  const data = await graphqlRequest(ORDERS_QUERY);
+
+  return data.orders?.nodes || [];
+}
+
 async function cancelOrder(orderId) {
   const gid = toOrderGid(orderId);
 
@@ -169,6 +198,7 @@ async function cancelOrder(orderId) {
 module.exports = {
   API_VERSION,
   cancelOrder,
+  getOrders,
   getOrderForCancellation,
   toOrderGid,
 };
