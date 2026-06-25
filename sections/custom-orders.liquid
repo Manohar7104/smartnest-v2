@@ -89,6 +89,15 @@
     box-shadow: 0 14px 34px rgba(20, 89, 75, 0.08);
   }
 
+  .custom-orders__card[data-order-details-url] {
+    cursor: pointer;
+  }
+
+  .custom-orders__card[data-order-details-url]:focus-visible {
+    outline: 3px solid rgba(20, 89, 75, 0.35);
+    outline-offset: 3px;
+  }
+
   .custom-orders__card-header {
     display: flex;
     gap: 14px;
@@ -100,6 +109,16 @@
     margin: 0 0 6px;
     font-size: 1.28rem;
     line-height: 1.2;
+  }
+
+  .custom-orders__details-link {
+    color: #16231f;
+    text-decoration: none;
+  }
+
+  .custom-orders__details-link:hover,
+  .custom-orders__details-link:focus-visible {
+    color: var(--orders-accent);
   }
 
   .custom-orders__date {
@@ -269,6 +288,18 @@
       return item;
     };
 
+    const getOrderNumericId = (orderId) => {
+      if (!orderId) return '';
+
+      return String(orderId).split('/').pop();
+    };
+
+    const getOrderDetailsUrl = (orderId) => {
+      const numericId = getOrderNumericId(orderId);
+
+      return `/pages/order-details?id=${encodeURIComponent(numericId)}`;
+    };
+
     const cancelOrder = async (order, card, reloadOrders) => {
       const button = card.querySelector('[data-order-cancel-button]');
       const message = card.querySelector('[data-order-message]');
@@ -313,13 +344,23 @@
     const renderOrder = (order, reloadOrders) => {
       const card = document.createElement('article');
       card.className = 'custom-orders__card';
+      card.tabIndex = 0;
+      card.setAttribute('role', 'link');
+      card.dataset.orderDetailsUrl = getOrderDetailsUrl(order.id);
 
       const header = document.createElement('div');
       header.className = 'custom-orders__card-header';
 
       const titleGroup = document.createElement('div');
+      const title = createTextNode('h2', '', '');
+      const titleLink = document.createElement('a');
+      titleLink.className = 'custom-orders__details-link';
+      titleLink.href = card.dataset.orderDetailsUrl;
+      titleLink.textContent = `Order ${order.name || ''}`.trim();
+      title.append(titleLink);
+
       titleGroup.append(
-        createTextNode('h2', '', `Order ${order.name || ''}`.trim()),
+        title,
         createTextNode('p', 'custom-orders__date', formatDate(order.createdAt))
       );
 
@@ -360,6 +401,17 @@
 
       actions.append(message);
       card.append(header, statuses, actions);
+      card.addEventListener('click', (event) => {
+        if (event.target.closest('a, button')) return;
+
+        window.location.href = card.dataset.orderDetailsUrl;
+      });
+      card.addEventListener('keydown', (event) => {
+        if (event.key !== 'Enter') return;
+        if (event.target.closest('a, button')) return;
+
+        window.location.href = card.dataset.orderDetailsUrl;
+      });
 
       return card;
     };

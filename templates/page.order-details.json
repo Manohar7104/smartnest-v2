@@ -1,0 +1,8 @@
+{
+  "sections": {
+    "main": {
+      "type": "custom-order-details"
+    }
+  },
+  "order": ["main"]
+}

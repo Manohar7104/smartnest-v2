@@ -1,0 +1,584 @@
+<section class="custom-order-details page-transition-surface" aria-labelledby="CustomOrderDetailsTitle-{{ section.id }}">
+  <div class="custom-order-details__container" data-custom-order-details>
+    <div class="custom-order-details__header">
+      <div>
+        <p class="custom-order-details__eyebrow">Order details</p>
+        <h1 id="CustomOrderDetailsTitle-{{ section.id }}" data-order-title>Order details</h1>
+        <p class="custom-order-details__date" data-order-date></p>
+      </div>
+
+      <a href="/pages/custom-orders" class="custom-order-details__button custom-order-details__button--secondary">
+        Back to orders
+      </a>
+    </div>
+
+    <div class="custom-order-details__notice" data-order-status role="status" aria-live="polite">
+      Loading order...
+    </div>
+
+    <div class="custom-order-details__content" data-order-content hidden>
+      <div class="custom-order-details__status-grid">
+        <div class="custom-order-details__status">
+          <span>Payment status</span>
+          <strong data-order-financial-status></strong>
+        </div>
+        <div class="custom-order-details__status">
+          <span>Fulfillment status</span>
+          <strong data-order-fulfillment-status></strong>
+        </div>
+        <div class="custom-order-details__status">
+          <span>Order total</span>
+          <strong data-order-total></strong>
+        </div>
+      </div>
+
+      <div class="custom-order-details__layout">
+        <div class="custom-order-details__panel">
+          <h2>Items</h2>
+          <div class="custom-order-details__items" data-order-line-items></div>
+        </div>
+
+        <aside class="custom-order-details__panel">
+          <h2>Order summary</h2>
+          <dl class="custom-order-details__totals">
+            <div>
+              <dt>Total</dt>
+              <dd data-order-summary-total></dd>
+            </div>
+            <div>
+              <dt>Currency</dt>
+              <dd data-order-currency></dd>
+            </div>
+          </dl>
+
+          <div class="custom-order-details__cancel" data-order-cancel-area>
+            <button type="button" class="custom-order-details__button custom-order-details__button--cancel" data-order-cancel-button>
+              Cancel Order
+            </button>
+            <p class="custom-order-details__message" data-order-message role="status" aria-live="polite"></p>
+          </div>
+        </aside>
+      </div>
+
+      <div class="custom-order-details__address-grid">
+        <div class="custom-order-details__panel">
+          <h2>Shipping address</h2>
+          <div class="custom-order-details__address" data-order-shipping-address></div>
+        </div>
+
+        <div class="custom-order-details__panel">
+          <h2>Billing address</h2>
+          <div class="custom-order-details__address" data-order-billing-address></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% stylesheet %}
+  .custom-order-details {
+    --order-details-accent: #14594b;
+    color: #16231f;
+    padding-block: clamp(32px, 6vw, 76px);
+  }
+
+  .custom-order-details__container {
+    width: min(1180px, calc(100% - 32px));
+    margin-inline: auto;
+  }
+
+  .custom-order-details__header {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+  }
+
+  .custom-order-details__eyebrow {
+    margin: 0 0 8px;
+    color: var(--order-details-accent);
+    font-size: 0.78rem;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .custom-order-details h1 {
+    margin: 0 0 8px;
+    font-size: clamp(2rem, 5vw, 3.4rem);
+    line-height: 1;
+  }
+
+  .custom-order-details__date {
+    margin: 0;
+    color: rgba(22, 35, 31, 0.68);
+    font-weight: 800;
+  }
+
+  .custom-order-details__notice {
+    border: 1px dashed rgba(20, 89, 75, 0.22);
+    border-radius: 8px;
+    background: #ffffff;
+    color: rgba(22, 35, 31, 0.72);
+    padding: 18px;
+    font-weight: 800;
+  }
+
+  .custom-order-details__notice:empty {
+    display: none;
+  }
+
+  .custom-order-details__notice--error {
+    border-style: solid;
+    background: #ffe4e6;
+    color: #9f1239;
+  }
+
+  .custom-order-details__status-grid,
+  .custom-order-details__address-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+
+  .custom-order-details__address-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-top: 18px;
+  }
+
+  .custom-order-details__status,
+  .custom-order-details__panel {
+    border: 1px solid rgba(20, 89, 75, 0.14);
+    border-radius: 8px;
+    background: #ffffff;
+    padding: clamp(18px, 4vw, 26px);
+    box-shadow: 0 14px 34px rgba(20, 89, 75, 0.08);
+  }
+
+  .custom-order-details__status {
+    display: grid;
+    gap: 6px;
+  }
+
+  .custom-order-details__status span {
+    color: rgba(22, 35, 31, 0.62);
+    font-weight: 900;
+  }
+
+  .custom-order-details__status strong {
+    color: var(--order-details-accent);
+    font-size: 1.1rem;
+  }
+
+  .custom-order-details__layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 380px);
+    gap: 18px;
+    align-items: start;
+  }
+
+  .custom-order-details__panel {
+    display: grid;
+    gap: 16px;
+  }
+
+  .custom-order-details__panel h2 {
+    margin: 0;
+  }
+
+  .custom-order-details__items {
+    display: grid;
+    gap: 12px;
+  }
+
+  .custom-order-details__item {
+    display: grid;
+    grid-template-columns: 76px minmax(0, 1fr) auto;
+    gap: 14px;
+    align-items: center;
+    border-bottom: 1px solid rgba(20, 89, 75, 0.12);
+    padding-bottom: 12px;
+  }
+
+  .custom-order-details__item-image,
+  .custom-order-details__item-placeholder {
+    width: 76px;
+    aspect-ratio: 1;
+    border-radius: 8px;
+    background: #eef4f0;
+    object-fit: cover;
+  }
+
+  .custom-order-details__item-placeholder {
+    display: grid;
+    place-items: center;
+    color: var(--order-details-accent);
+    font-weight: 900;
+  }
+
+  .custom-order-details__item h3 {
+    margin: 0 0 6px;
+    font-size: 1rem;
+  }
+
+  .custom-order-details__item p {
+    margin: 0;
+    color: rgba(22, 35, 31, 0.66);
+  }
+
+  .custom-order-details__item-price {
+    color: var(--order-details-accent);
+    font-weight: 900;
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .custom-order-details__totals {
+    display: grid;
+    gap: 10px;
+    margin: 0;
+  }
+
+  .custom-order-details__totals div {
+    display: flex;
+    justify-content: space-between;
+    gap: 14px;
+  }
+
+  .custom-order-details__totals dd {
+    margin: 0;
+    font-weight: 900;
+  }
+
+  .custom-order-details__cancel {
+    display: grid;
+    gap: 10px;
+    justify-items: start;
+  }
+
+  .custom-order-details__button {
+    display: inline-flex;
+    min-height: 44px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    padding: 10px 16px;
+    color: var(--order-details-accent);
+    font: inherit;
+    font-weight: 900;
+    text-decoration: none;
+  }
+
+  .custom-order-details__button--secondary {
+    border: 1px solid rgba(20, 89, 75, 0.2);
+    background: #ffffff;
+  }
+
+  .custom-order-details__button--cancel {
+    border: 0;
+    background: #14594b;
+    color: #ffffff;
+    cursor: pointer;
+  }
+
+  .custom-order-details__button--cancel:disabled {
+    cursor: progress;
+    opacity: 0.68;
+  }
+
+  .custom-order-details__message {
+    margin: 0;
+    border-radius: 8px;
+    color: #14594b;
+    font-weight: 900;
+    line-height: 1.5;
+  }
+
+  .custom-order-details__message--success,
+  .custom-order-details__message--error {
+    padding: 12px 14px;
+  }
+
+  .custom-order-details__message--success {
+    background: #dcfce7;
+    color: #166534;
+  }
+
+  .custom-order-details__message--error {
+    background: #ffe4e6;
+    color: #9f1239;
+  }
+
+  .custom-order-details__address {
+    color: rgba(22, 35, 31, 0.74);
+    line-height: 1.6;
+    white-space: pre-line;
+  }
+
+  @media (max-width: 899px) {
+    .custom-order-details__container {
+      width: min(100% - 24px, 1180px);
+    }
+
+    .custom-order-details__layout,
+    .custom-order-details__status-grid,
+    .custom-order-details__address-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 560px) {
+    .custom-order-details__item {
+      grid-template-columns: 64px minmax(0, 1fr);
+    }
+
+    .custom-order-details__item-image,
+    .custom-order-details__item-placeholder {
+      width: 64px;
+    }
+
+    .custom-order-details__item-price {
+      grid-column: 2;
+      text-align: left;
+    }
+  }
+{% endstylesheet %}
+
+{% javascript %}
+  (() => {
+    const API_BASE_URL = 'https://smartnest-v2.onrender.com/api/orders';
+
+    const formatStatus = (value) => {
+      if (!value) return 'Unknown';
+
+      return value
+        .toLowerCase()
+        .split('_')
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+        .join(' ');
+    };
+
+    const formatDate = (value) => {
+      if (!value) return 'Date unavailable';
+
+      return new Intl.DateTimeFormat(undefined, {
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric',
+      }).format(new Date(value));
+    };
+
+    const formatMoney = (amount, currency) => {
+      const numericAmount = Number(amount || 0);
+
+      try {
+        return new Intl.NumberFormat(undefined, {
+          style: 'currency',
+          currency: currency || 'INR',
+        }).format(numericAmount);
+      } catch (error) {
+        return `${currency || 'INR'} ${numericAmount.toFixed(2)}`;
+      }
+    };
+
+    const setNotice = (node, message, isError = false) => {
+      node.textContent = message;
+      node.classList.toggle('custom-order-details__notice--error', isError);
+    };
+
+    const setText = (root, selector, value) => {
+      const node = root.querySelector(selector);
+      if (node) node.textContent = value;
+    };
+
+    const renderAddress = (address) => {
+      if (!address) return 'No address available.';
+
+      return [
+        address.name,
+        address.address1,
+        address.address2,
+        [address.city, address.province, address.zip].filter(Boolean).join(', '),
+        address.country,
+        address.phone,
+      ].filter(Boolean).join('\n');
+    };
+
+    const createLineItem = (item, currency) => {
+      const row = document.createElement('article');
+      row.className = 'custom-order-details__item';
+
+      if (item.image) {
+        const image = document.createElement('img');
+        image.className = 'custom-order-details__item-image';
+        image.src = item.image;
+        image.alt = item.title || 'Order item';
+        image.loading = 'lazy';
+        row.append(image);
+      } else {
+        const placeholder = document.createElement('div');
+        placeholder.className = 'custom-order-details__item-placeholder';
+        placeholder.textContent = 'SN';
+        row.append(placeholder);
+      }
+
+      const details = document.createElement('div');
+      const title = document.createElement('h3');
+      const quantity = document.createElement('p');
+
+      title.textContent = item.title || 'Order item';
+      quantity.textContent = `Quantity: ${item.quantity || 0}`;
+      details.append(title, quantity);
+
+      const price = document.createElement('div');
+      price.className = 'custom-order-details__item-price';
+      price.textContent = formatMoney(item.price, currency);
+
+      row.append(details, price);
+      return row;
+    };
+
+    document.querySelectorAll('[data-custom-order-details]').forEach((root) => {
+      const params = new URLSearchParams(window.location.search);
+      const orderId = params.get('id');
+      const statusNode = root.querySelector('[data-order-status]');
+      const contentNode = root.querySelector('[data-order-content]');
+      const lineItemsNode = root.querySelector('[data-order-line-items]');
+      const cancelButton = root.querySelector('[data-order-cancel-button]');
+      const messageNode = root.querySelector('[data-order-message]');
+
+      if (!statusNode || !contentNode || !lineItemsNode) return;
+
+      if (!orderId) {
+        setNotice(statusNode, 'No order selected.', true);
+        return;
+      }
+
+      let currentOrder = null;
+
+      const renderOrder = (order) => {
+        currentOrder = order;
+
+        setText(root, '[data-order-title]', order.name || 'Order details');
+        setText(root, '[data-order-date]', `Placed on ${formatDate(order.createdAt)}`);
+        setText(root, '[data-order-financial-status]', formatStatus(order.financialStatus));
+        setText(
+          root,
+          '[data-order-fulfillment-status]',
+          order.cancelled ? 'Cancelled' : formatStatus(order.fulfillmentStatus)
+        );
+        setText(root, '[data-order-total]', formatMoney(order.total, order.currency));
+        setText(root, '[data-order-summary-total]', formatMoney(order.total, order.currency));
+        setText(root, '[data-order-currency]', order.currency || 'INR');
+        setText(root, '[data-order-shipping-address]', renderAddress(order.shippingAddress));
+        setText(root, '[data-order-billing-address]', renderAddress(order.billingAddress));
+
+        lineItemsNode.replaceChildren();
+
+        if (Array.isArray(order.lineItems) && order.lineItems.length > 0) {
+          lineItemsNode.replaceChildren(
+            ...order.lineItems.map((item) => createLineItem(item, order.currency))
+          );
+        } else {
+          const empty = document.createElement('p');
+          empty.textContent = 'No items found for this order.';
+          lineItemsNode.append(empty);
+        }
+
+        if (messageNode) {
+          messageNode.textContent = '';
+          messageNode.className = 'custom-order-details__message';
+        }
+
+        if (cancelButton) {
+          cancelButton.hidden = Boolean(order.cancelled);
+          cancelButton.disabled = false;
+          cancelButton.textContent = 'Cancel Order';
+        }
+
+        if (order.cancelled && messageNode) {
+          messageNode.textContent = '\u2713 Order Cancelled Successfully';
+          messageNode.classList.add('custom-order-details__message--success');
+        }
+      };
+
+      const loadOrder = async () => {
+        setNotice(statusNode, 'Loading order...');
+        contentNode.hidden = true;
+
+        try {
+          const response = await fetch(`${API_BASE_URL}/${encodeURIComponent(orderId)}`);
+          const order = await response.json();
+
+          if (!response.ok) {
+            throw new Error(order.message || 'Unable to load this order.');
+          }
+
+          if (!order || !order.id) {
+            setNotice(statusNode, 'No order details found.');
+            return;
+          }
+
+          setNotice(statusNode, '');
+          renderOrder(order);
+          contentNode.hidden = false;
+        } catch (error) {
+          setNotice(
+            statusNode,
+            error.message || 'Unable to load this order.',
+            true
+          );
+        }
+      };
+
+      cancelButton?.addEventListener('click', async () => {
+        if (!currentOrder || !messageNode) return;
+
+        cancelButton.disabled = true;
+        cancelButton.textContent = 'Cancelling...';
+        messageNode.textContent = '';
+        messageNode.className = 'custom-order-details__message';
+
+        try {
+          const response = await fetch(`${API_BASE_URL}/cancel`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              orderId: currentOrder.id,
+            }),
+          });
+
+          const payload = await response.json();
+
+          if (!response.ok || !payload.success) {
+            throw new Error(payload.message || 'Unable to cancel this order.');
+          }
+
+          cancelButton.hidden = true;
+          messageNode.textContent = '\u2713 Order Cancelled Successfully';
+          messageNode.classList.add('custom-order-details__message--success');
+
+          await loadOrder();
+        } catch (error) {
+          cancelButton.disabled = false;
+          cancelButton.textContent = 'Cancel Order';
+          messageNode.textContent = error.message || 'Unable to cancel order.';
+          messageNode.classList.add('custom-order-details__message--error');
+        }
+      });
+
+      loadOrder();
+    });
+  })();
+{% endjavascript %}
+
+{% schema %}
+{
+  "name": "Custom Order Details",
+  "settings": []
+}
+{% endschema %}

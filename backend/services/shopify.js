@@ -34,6 +34,64 @@ const ORDERS_QUERY = `
   }
 `;
 
+const ORDER_DETAILS_QUERY = `
+  query GetOrderDetails($id: ID!) {
+    order: node(id: $id) {
+      ... on Order {
+        id
+        name
+        createdAt
+        displayFinancialStatus
+        displayFulfillmentStatus
+        cancelledAt
+        currentTotalPriceSet {
+          shopMoney {
+            amount
+            currencyCode
+          }
+        }
+        shippingAddress {
+          name
+          address1
+          address2
+          city
+          province
+          zip
+          country
+          phone
+        }
+        billingAddress {
+          name
+          address1
+          address2
+          city
+          province
+          zip
+          country
+          phone
+        }
+        lineItems(first: 50) {
+          nodes {
+            id
+            title
+            quantity
+            image {
+              url
+              altText
+            }
+            originalUnitPriceSet {
+              shopMoney {
+                amount
+                currencyCode
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+`;
+
 const CANCEL_ORDER_MUTATION = `
   mutation CancelOrder(
     $orderId: ID!
@@ -164,6 +222,16 @@ async function getOrders() {
   return data.orders?.nodes || [];
 }
 
+async function getOrderById(orderId) {
+  const gid = toOrderGid(orderId);
+
+  // Future Enhancement: verify this order belongs to the authenticated
+  // customer before returning details.
+  const data = await graphqlRequest(ORDER_DETAILS_QUERY, { id: gid });
+
+  return data.order;
+}
+
 async function cancelOrder(orderId) {
   const gid = toOrderGid(orderId);
 
@@ -198,6 +266,7 @@ async function cancelOrder(orderId) {
 module.exports = {
   API_VERSION,
   cancelOrder,
+  getOrderById,
   getOrders,
   getOrderForCancellation,
   toOrderGid,
