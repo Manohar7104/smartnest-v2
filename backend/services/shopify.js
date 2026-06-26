@@ -51,26 +51,6 @@ const ORDER_DETAILS_QUERY = `
             currencyCode
           }
         }
-        shippingAddress {
-          name
-          address1
-          address2
-          city
-          province
-          zip
-          country
-          phone
-        }
-        billingAddress {
-          name
-          address1
-          address2
-          city
-          province
-          zip
-          country
-          phone
-        }
         lineItems(first: 50) {
           nodes {
             id

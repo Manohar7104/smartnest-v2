@@ -29,8 +29,8 @@ function formatOrder(order) {
     cancelled: Boolean(order.cancelledAt),
     total: total?.amount || "0.00",
     currency: total?.currencyCode || "INR",
-    shippingAddress: formatAddress(order.shippingAddress),
-    billingAddress: formatAddress(order.billingAddress),
+    shippingAddress: null,
+    billingAddress: null,
     lineItems: (order.lineItems?.nodes || []).map((lineItem) => {
       const price = lineItem.originalUnitPriceSet?.shopMoney;
 
