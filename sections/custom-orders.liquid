@@ -295,10 +295,10 @@
     };
 
     const getOrderDetailsUrl = (orderId) => {
-      const numericId = getOrderNumericId(orderId);
+  const numericId = getOrderNumericId(orderId);
 
-      return `/pages/order-details?id=${encodeURIComponent(numericId)}`;
-    };
+  return `/account/orders/${encodeURIComponent(numericId)}`;
+};
 
     const cancelOrder = async (order, card, reloadOrders) => {
       const button = card.querySelector('[data-order-cancel-button]');

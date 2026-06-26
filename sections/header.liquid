@@ -69,10 +69,18 @@
             </svg>
           </a>
           <div class="account-menu__dropdown" aria-label="Account menu">
-            <a href="{{ routes.account_url }}" class="account-menu__link">My Account</a>
-            <a href="{{ cancellation_request_url }}" class="account-menu__link">Request Cancellation</a>
-          </div>
-        </div>
+  <a href="{{ routes.account_url }}" class="account-menu__link">
+    My Account
+  </a>
+
+  <a href="/pages/my-orders" class="account-menu__link">
+    My Orders
+  </a>
+
+  <a href="{{ cancellation_request_url }}" class="account-menu__link">
+    Request Cancellation
+  </a>
+</div>
       {% endif %}
 
       <!-- Cart Icon -->

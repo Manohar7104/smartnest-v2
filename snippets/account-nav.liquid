@@ -11,10 +11,18 @@
   <nav class="account-nav" aria-label="Customer account">
     <a
       href="{{ routes.account_url }}"
-      class="account-nav__link{% if active == 'account' or active == 'orders' or active == 'profile' %} account-nav__link--active{% endif %}"
-      {% if active == 'account' or active == 'orders' or active == 'profile' %}aria-current="page"{% endif %}
+      class="account-nav__link{% if active == 'account' or active == 'profile' %} account-nav__link--active{% endif %}"
+      {% if active == 'account' or active == 'profile' %}aria-current="page"{% endif %}
     >
       Account
+    </a>
+
+    <a
+      href="/pages/my-orders"
+      class="account-nav__link{% if active == 'orders' %} account-nav__link--active{% endif %}"
+      {% if active == 'orders' %}aria-current="page"{% endif %}
+    >
+      Orders
     </a>
 
     <a
