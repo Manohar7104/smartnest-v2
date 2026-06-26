@@ -17,57 +17,18 @@ const ORDERS_QUERY = `
   query GetOrders {
     orders(first: 20, sortKey: CREATED_AT, reverse: true) {
       nodes {
-      id
-      name
-      createdAt
-      statusPageUrl
-      displayFinancialStatus
-      displayFulfillmentStatus
-        currentTotalPriceSet {
-          shopMoney {
-            amount
-            currencyCode
-          }
-        }
-        cancelledAt
-      }
-    }
-  }
-`;
-
-const ORDER_DETAILS_QUERY = `
-  query GetOrderDetails($id: ID!) {
-    order: node(id: $id) {
-      ... on Order {
         id
         name
         createdAt
         displayFinancialStatus
         displayFulfillmentStatus
-        cancelledAt
         currentTotalPriceSet {
           shopMoney {
             amount
             currencyCode
           }
         }
-        lineItems(first: 50) {
-          nodes {
-            id
-            title
-            quantity
-            image {
-              url
-              altText
-            }
-            originalUnitPriceSet {
-              shopMoney {
-                amount
-                currencyCode
-              }
-            }
-          }
-        }
+        cancelledAt
       }
     }
   }
@@ -203,16 +164,6 @@ async function getOrders() {
   return data.orders?.nodes || [];
 }
 
-async function getOrderById(orderId) {
-  const gid = toOrderGid(orderId);
-
-  // Future Enhancement: verify this order belongs to the authenticated
-  // customer before returning details.
-  const data = await graphqlRequest(ORDER_DETAILS_QUERY, { id: gid });
-
-  return data.order;
-}
-
 async function cancelOrder(orderId) {
   const gid = toOrderGid(orderId);
 
@@ -247,7 +198,6 @@ async function cancelOrder(orderId) {
 module.exports = {
   API_VERSION,
   cancelOrder,
-  getOrderById,
   getOrders,
   getOrderForCancellation,
   toOrderGid,
