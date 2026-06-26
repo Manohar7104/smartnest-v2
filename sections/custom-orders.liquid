@@ -294,11 +294,9 @@
       return String(orderId).split('/').pop();
     };
 
-    const getOrderDetailsUrl = (orderId) => {
-  const numericId = getOrderNumericId(orderId);
-
-  return `/account/orders/${encodeURIComponent(numericId)}`;
-};
+    const getOrderDetailsUrl = (order) => {
+    return order.detailsUrl;
+   }
 
     const cancelOrder = async (order, card, reloadOrders) => {
       const button = card.querySelector('[data-order-cancel-button]');
@@ -346,7 +344,7 @@
       card.className = 'custom-orders__card';
       card.tabIndex = 0;
       card.setAttribute('role', 'link');
-      card.dataset.orderDetailsUrl = getOrderDetailsUrl(order.id);
+      card.dataset.orderDetailsUrl = getOrderDetailsUrl(order);
 
       const header = document.createElement('div');
       header.className = 'custom-orders__card-header';

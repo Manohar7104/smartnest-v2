@@ -1,8 +1,4 @@
-const {
-  cancelOrder,
-  getOrderById,
-  getOrders,
-} = require("../services/shopify");
+const { cancelOrder, getOrderById, getOrders } = require("../services/shopify");
 
 function formatAddress(address) {
   if (!address) {
@@ -63,6 +59,8 @@ async function getOrdersController(req, res, next) {
         total: order.currentTotalPriceSet?.shopMoney?.amount || "0.00",
         currency: order.currentTotalPriceSet?.shopMoney?.currencyCode || "INR",
         cancelled: Boolean(order.cancelledAt),
+
+        detailsUrl: order.statusPageUrl,
       })),
     );
   } catch (error) {

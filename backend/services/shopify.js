@@ -17,11 +17,12 @@ const ORDERS_QUERY = `
   query GetOrders {
     orders(first: 20, sortKey: CREATED_AT, reverse: true) {
       nodes {
-        id
-        name
-        createdAt
-        displayFinancialStatus
-        displayFulfillmentStatus
+      id
+      name
+      createdAt
+      statusPageUrl
+      displayFinancialStatus
+      displayFulfillmentStatus
         currentTotalPriceSet {
           shopMoney {
             amount
